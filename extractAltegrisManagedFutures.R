@@ -318,6 +318,26 @@ extractAltegrisData<-function (outputDirectory){
   close(outputFileHandle2)
 }
 
+# define the function to create the altegris database
+createAltegrisDatabase <- function(dbHandle){
+  # create the 'altegris' database
+  
+  # create the query
+  query<-paste0("CREATE DATABASE ",dbName)
+  # execute the query
+  dbGetQuery(dbHandle,query)
+}
+
+# define the function to drop the altegris database
+dropAltegrisDatabase <- function(dbHandle){
+  # drop the 'altegris' database
+  
+  # create the query
+  query<-paste0("DROP DATABASE ",dbName)
+  # execute the query
+  dbGetQuery(dbHandle,query)
+}
+
 # define the function to create the CTA program info table
 createCtaProgramInfoTable <- function (dbHandle){
   # create the SQL statement to create the table
@@ -381,7 +401,7 @@ dbDriver<-dbDriver("MySQL")
 dbHost<-'localhost'
 dbPort<-3306
 dbUser<-'root'
-dbPassword<-'tgdnrx78'
+dbPassword<-''
 dbName<-'altegris'
 
 # output file path
@@ -400,15 +420,12 @@ dbHandle<-dbConnect(dbDriver,
                     host=dbHost,port=dbPort,user=dbUser, 
                     password=dbPassword)
 
-# drop the 'altegris' database
-query<-paste0("DROP DATABASE ",dbName)
 
-dbGetQuery(dbHandle,query)
+# drop the 'altegris' database
+try(dropAltegrisDatabase(dbHandle),silent=TRUE)
 
 # create the 'altegris' database
-query<-paste0("CREATE DATABASE ",dbName)
-
-dbGetQuery(dbHandle,query)
+try(createAltegrisDatabase(dbHandle),silent=TRUE)
 
 # disconnect from the database
 dbDisconnect(dbHandle)
