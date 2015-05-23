@@ -1,0 +1,533 @@
+---
+title: Diversification in the Managed Futures Universe
+author: Derek G. Nokes, CUNY
+date: Friday, May 22, 2015
+output: pdf_document
+toc: yes
+---
+
+```{r,echo=FALSE,error=FALSE,warning=FALSE,message=FALSE}
+displayRCode<-FALSE
+displayRErrors<-FALSE
+displayRWarnings<-FALSE
+displayRMessages<-FALSE
+```
+
+\pagebreak
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# all of the code for the paper goes here
+nCtaPrograms<-200
+```
+
+# Abstract
+
+- outline thesis
+
+- summarize findings / outline arguments
+
+# Introduction and Motivation
+
+In portfolio allocation applications the objective is to maximize investors' future wealth by determining how to allocate capital among a set of available investments in such a way as to maximize *compound* growth subject to a set of constraints. Maximizing wealth requires that we take advantage of the powerful positive effects of compounding. When we reinvest, the magnitude of investment returns and the variability of those returns make *equal* contributions to compounded total return. Reducing the variability of returns thus has as much impact on total return as the magnitude of returns. The variability of portfolio return is a function of the co-variability of investment component returns. If the component returns tend to move together, the magnitude of fluctuations in the monthly value of the portfolio is higher than if the components move in different directions. A portfolio comprised of components with diversified returns will achieve higher compound growth than a portfolio with less diversified components holding average component returns constant. In the simplest terms, portfolio allocation is primarily about selecting sets of investments with *future* positive average returns and low co-variability. 
+
+As the size of a portfolio increases, the number of inter-relationships between components explodes. It becomes increasingly difficult to understand the drivers of portfolio return as the number of components rises because the number of independent parameters in a covariance matrix grows with the square of the number of investments. Grouping investments that tend to move together and focusing on trying to find groups that are independent is one common way to reduce portfolio variability. This can be accomplished through the use of *factor models*. 
+
+In this paper we focus on the application of a statistical factor models to the investment universe of Commodity Trading Advisor (CTA) programs. Our objective is to model the 
+
+## Portfolio Return & Its Variability
+In this section, we introduce definitions for portfolio return and the variability that will be used in the allocation application developed in later sections of the paper.
+
+###  Portfolio Return
+Portfolio return is obviously a function of the weights and the returns of investment components in the portfolio. We define the portfolio return for $I$ component investments for the month $m$ given the monthly returns and portfolio weights for each component investment $i$ as:
+
+$$r_{P,m}=\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)$$
+
+The holdig period return (HPR) for the portfolio is one plus the portfolio return for the month $m$:
+
+$$HPR_{P,m}=1+\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)=1+r_{P,m}$$
+
+The holding period return is the factor by which we mulitply the starting value of the portfolio to get the ending value of a portfolio, given the monthly returns and weights of each component investment.
+
+Similarly, we define the terminal wealth relative (TWR) as the factor by which we multiply the starting value of the portfolio to get the ending value of the portfolio given the return streams and weights for a sequence of $M$ months:
+
+$$TWR_{P,M}=\prod_{1=m}^{M}\left(1+\left(\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)\right)\right)=\prod_{1=m}^{M}HPR_{P,m}$$
+
+We define the portfolio compounded return for the interval $M$ as the portfolio terminal wealth relative minue one$:
+
+$$r_{P,M}=\left(\prod_{1=m}^{M}\left(1+\left(\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)\right)\right)\right)-1=\left(\prod_{1=m}^{M}\left(1+r_{P,m}\right)\right)-1=\left(\prod_{1=m}^{M}HPR_{P,m}\right)-1=TWR_{P,M}-1$$
+
+## Portfolio Variability
+We define the standard deviation of the portfolio as:
+
+$$\sigma_{P,M}=$$
+
+## Parametric VaR
+We can estimate the value-at-risk (VaR) using a parameteric approach by assuming that portfolio returns are drawn from an indepedent and identically distributed normal random variable:
+
+$$VaR = -\alpha_{CL}\sigma_{P,M}$$
+
+Where
+
+$\alpha_{CL}$ is the critical value at the confidence level $CL$
+
+$\sigma_{P,M}$ is the standard deviation of the portfolio returns over the time interval $M$
+
+This simple parameteric model can be 
+
+
+## Too Many Moving Parts
+
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+nParametersInC <- function (I){
+  #
+  nParameters<-(I*(I+1))/2
+  nParameters
+}
+```
+
+The number of independent parameters in a covariance matrix grows with the number of investments according to the following function:
+
+$$P=\frac{I\left(I+1\right)}{2}$$
+
+Where 
+
+$P$ is the number of independent paramters in the covariance matrix
+
+$I$ is the number of distinct investments
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create a graph to illustrate number of model parameters by number of instruments
+plot(nParametersInC(1:100),type='l',xlab='Number of Investments',ylab='Number of Model Parameters')
+
+```
+
+Using any 
+
+The number of independent parameters to be estimated in the covariance matrix grows with the square of the number of investments, while the number of data points available to estimate a covariance matrix grows only linearly with the number of investments. In other words, the larger the portfolio, the more historical data we need typically need to estimate the covariance matrix reliably. This is particularly problematic when our interest is in the temporal evolution of the relationships between investments in the portfolio.
+
+
+
+
+- difficulty in understanding a portfolio as the number of components increase
+
+- research problem / question
+
+- data science workflow / approach to answer the question
+
+-- show the picture of the workflow
+
+- outline each section [Introduction & Motivation, Theory, Data, Applications in R]
+
+-- outline each subsection
+
+# Data
+
+- quick overview of the data collected 
+
+- raw data
+
+-- data has not been normalized; not transaction-oriented
+
+-- storage has been set-up for one time analysis
+
+- preprocessed data
+
+-- although return data quality appears high, the quality of data pertaining to manager and program information is much lower.
+
+## Raw Data Extraction, Transformation, and Loading (ETL)
+
+-outline the data (see data dictionary in Appendix A)
+
+-- steps taken 
+
+-- code for the data extraction, exploration, and cleaning etc
+
+## Data Exploration
+
+- explore the manager and program information
+
+- explore the monthly return data
+
+-- outlier identification
+
+-- mean returns vs standard deviation of returns for each period
+
+<this section is mostly complete; must be transferred from other doc>
+
+## Data Cleaning
+
+
+
+# Theory
+
+## Modeling Context
+In the previous section, we provided an overview of the process used to obtain the monthly returns for all distinct CTA programs available in the Altegris managed futures database. 
+
+<in this sector we provide the mathematical details associated with the statistical factor model employed in the application section of this >
+
+In this section, we provide a brief overview the theoretical underpinnings of the modeling approach employed in our application [outlined in section blaw blaw].
+
+<summary sent. to describe what is to follow in this section>
+
+### Standardized Returns
+Standardization rescales a variable while preserving its order. <add info from the matrix decomposition book>
+
+We denote the monthly return of the $i^{th}$ investment for the $m^{th}$ month as $r_{i,m}$ and define the standardized return as:
+
+$$\hat{r}_{i,m}=\frac{\left( r_{i,m}-\bar{r}_{i,M}\right)}{\sigma(r_{i,M})}$$
+
+Where
+
+$\hat{r}_{i,m}$ is the standardized return of the $i^{th}$ investment for the $m^{th}$ month using data over the time interval $M$
+
+$r_{i,m}$ is the observed return of the $i^{th}$ investment for the $m^{th}$ month
+
+$\bar{r}_{i,M}=\frac{1}{M}\sum_{m=1}^{M}\left(\hat{r}_{m}\right)$ is the mean of the return stream of the $i^{th}$ investment over the time interval $M$
+
+$\sigma(r_{i,M})=$ is the standard deviation of the returns for the $i^{th}$ investment over the time interval $M$
+
+
+Using a little linear algebra we can standardize the return with the following operation:
+
+<define the mean with algebra>
+
+<define the sigma with algebra>
+
+### Correlations
+We represent the standardized returns as an $I$ x $M$ matrix $\hat{R}$ with an empirical correlation matrix $C$ defined as:
+
+$$C = \frac{1}{M}\hat{R}\hat{R}^{T}$$
+
+Where
+
+$T$ denotes the matrix transform
+
+The correlation matrix ($C$) of returns ($\hat{R}$) and the covariance matrix ($\Sigma_{\hat{R}}$) of standardized returns ($\hat{R}$) are identical.
+
+
+<mean return>
+
+$\bar{r}_{i}=\frac{1^{T}\hat{r}_{i}}{I}$
+
+<standard deviation>
+
+
+<covariance>
+
+$$\sigma_{i,j}=\frac{1}{M}\hat{r}_{i}^{T}\hat{r}_{j}-\bar{r}_{i}\bar{r}_{j}$$
+
+$$\Sigma_{\hat{R}}=\frac{\hat{R}^{T}\hat{R}}{M}-\left( \bar{R_{i}}\bar{R_{j}}\right)$$
+
+
+
+
+## Principal Component Analysis (PCA)
+The objective of principal component analysis (PCA) is to find a linear transformation $\Omega$ that maps a set of observed variables $\hat{R}$ into a set of uncorrelated variables $F$. We define the $I$ x $M$ statistical factor matrix as
+
+$$F = \Omega\hat{R}$$ []
+
+Where each row $f_{k}$ ($k = 1, \dot ,N$) corresponds to a factor $F$ of $\hat{R}$ and the transformation matrix $\Omega$ has elements $\omega_{k,i}$. The first row of $\omega_{1}$ (which contains the first set of factor coefficients) is chosen such that the first factor ($f_{1}$) is aligned with the direction of maximal variance in the $I$-dimensional space defined by $\hat{R}$. Each subsequent factor ($f_{k}$) accounts for as much of the remaining variance of the standardized returns $\hat{R}$ as possible, subject to the constraint that the $\omega_{k}$ are mutually orthogonal. We further constrain the vectors $\omega_{k}$ by requiring that $\omega_{k}\omega_{k}^{T}=1$ for all $k$.
+
+The correlation matrix $C$ is an $I$ x $I$ diagonalizable symmetric matrix that can be written in the form
+
+$$C = \frac{1}{M}EDE^{T}$$ []
+
+Where 
+$D$ is a diagonal matrix of eigenvalues $d$ and $E$ is an orthogonal matrix of the corresponding eigenvectors.
+
+The eigenvectors of the correlation matrix $C$ correspond to the directions of maximal variance such that $\Omega=E^{T}$, and one finds the statistical factors / principal components $F$ using the diagonalization in []. 
+
+If the sign of every coefficient in a statistical factor $f_{k}$ is reversed, neither the variance of $f_{k}$ nor the orthogonality of $\omega$ with respect to each of the other eigenvectors changes. For this reason, the signs of factors (PCs) are arbitrary. This feature of PCA can be problematic when we are interested in the temporal evolution of factors.
+
+### Proportion of Variance
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# find the number of significant principal components (PCs)
+nSignificantPCs<-5
+```
+
+
+
+The covariance matrix $\Sigma_{F}$ for the statistical factor matrix $F$ can be written as:
+
+$$\Sigma_{F}=\frac{1}{M}FF^{T}=\frac{1}{M}\Omega\hat{R}\hat{R}^{T} \Omega^{T} = D$$
+
+Where $D$ is the diagonal matrix of eigenvalues $d$.
+
+The total variance of the standardized returns $\hat{R}$ for the $I$ investments is then
+
+$$\sum_{i=1}^{I}\sigma^{2}(\hat{r}_{i})=tr(\Sigma_{\hat{R}})=\sum_{i=1}^{I}d_{i}=\sum_{i=1}^{N}\sigma^{2}(f_{i})=tr(D)=I$$
+
+Where
+$\Sigma_{\hat{R}}$ is the covariance matrix for $\hat{R}$ 
+
+$\sigma^{2}(\hat{r_{i}})=1$ is the variance of the vector $\hat{r_{i}}$ of standardized returns for investment $i$.
+
+The proportion of the total variance in $\hat{R}$ explained by the $k^{th}$ factor is then
+
+$$\frac{\sigma^{2}(f_{k})}{\Sigma_{i=1}^{I}\sigma^{2}(\hat{r_{i}})}=\frac{d_{k}}{\Sigma_{i=1}^{I}d_{k}}=\frac{d_{k}}{I}$$
+
+The proportion of the variance from the $k^{th}$ factor is equal to the ratio of the $k^{th}$ largest eigenvalue $d_{k}$ to the number of investments $I$.
+
+
+
+
+
+The large variance in investment returns explained by a single factor implies that there is a large amount of common variation in the investment universe.
+
+## Random Matrix Theory (RMT)
+
+### Number of Significant Components
+determine how many statistical factors are needed to describe the correlations between investments
+PCA is widely used to produce lower-dimensional representations of multivariate data by retaining a few "significant" components and discarding all other components. Many heuristic methods have been proposed for determining the number of significant factors, but there is no widespread agreement on an optimal approach
+
+Apply two techniques to find the number of significant components. The assumes that a factor is significant if its eigenvalue $d > 1/N$. Any component that satisfies this criterion accounts for more than a fraction ($1/N$) of the variance of the system. It is considered significant because it is assumed to summarize more information than any single original variable. The second approach is to compare the observed eigenvalues to the eigenvalues for random data and can be understood by considering the scree plot (figure ???). A scree plot shows the magnitudes of the eigenvalues as a function of the eigenvalue index, where the eigenvalues are sorted such that $\beta 1 \beta 2 \beta N$. The leftmost data point in the scree plot indicates the magnitude of the largest eigenvalue, and the rightmost data point indicates the magnitude of the smallest eigenvalue. The number of significant PCs is given by the number of eigenvalues in the scree plot for which the eigenvalue for the observed data is larger than the corresponding eigenvalue for random data
+
+We explore 
+
+- topic intro
+
+- outline how we determine # of significant components
+
+## 
+
+- outline factor sensitivities [time permitting]
+
+- outline VaR [time permitting]
+
+
+
+
+
+# Modeling: Results
+
+- data driven approach 
+
+-use statistical methods to select and weight factors
+
+- approach uses returns as the independent variables and factors as the dependent variables
+
+- variety of estimation procedures, including classification trees, k-means, and principal components - that can be used to estimate these models. 
+
+-statistic is established to determine the criteria for a successful model
+
+- algorithm of the statistical method evaluates the data and compares the results against the criteria. 
+
+
+## Data Preprocessing
+
+- de-trend and scale the returns
+
+## Statistical Factor Analysis
+
+###  
+
+
+
+In this section was 
+
+- do PCA
+
+- number of significant components
+
+- universe diversification over time
+
+### Significant Statistical Factor Coefficients
+An increase in the variance for which a factor accounts might be the result of increases in the correlations among only a few assets (which then have large factor coefficients) or a effect in which many investments begin to make significant contributions to the factor, This is an important distinction, because the two types of changes have very different implications for portfolio management. It becomes much more difficult to reduce risk by diversifying across different investment when correlations between all investments increase. In contrast, increases in correlations within an investment type that are not accompanied by increases in correlations between investment types have a less significant impact on diversification.
+
+#### Inverse Participation Ratio (IPR)
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# define the inverse participation ratio (IPR)
+inverseParticipationRatio <- function (k,omega){
+  # find the IPR
+  
+  # return the IPR
+  IPR
+}
+# define the participation ratio (PR)
+PR<- function (k,omega){
+  # find the IPR
+  IPR<-inverseParticipationRatio(k,omega)
+  # take the inverse of the IPR
+  PR<-1/IPR
+  # return the PR
+  PR
+}
+```
+
+
+The inverse participation ratio $I_{k}$ of the $k^{th}$ factor $\omega_{k}$ is defined as:
+
+$$IPR_{k}=\sum_{i=1}^{I}\left( \omega_{k,i}\right)^{4}$$
+
+The IPR quantifies the reciprocal of the number of elements that make a significant contribution to each eigenvector.
+
+The behavior of the IPR is bounded by two cases:
+
+[1] An eigenvector with identical contributions $\omega_{k,i}=frac{1}{\sqrt{I}}$ from all $I$ investments has $IPR_{k}=\frac{1}{I}$
+
+[2] An eigenvector with a single factor $\omega_{k,i}=1$ and remaining factors equal to zero has $IPR=1$
+
+The inverse of the IPR - the so-called participation ratio - provides a more intuitive measure of the significance of a given factor as a large $PR$ indicates that many investments contribute to the factor, while a small $PR$ signals that few investments contribute to the factor:
+
+$PR = \frac{1}{IPR_{k}}$
+
+### Temporal Evolution
+We show as a function of time the fraction of the variance $frac{d_{k}}{N}$ due to the first `r nSignificantPCs` statistical factors $f_{k} (k=1,...,$ `r nSignificantPCs`$)$.
+
+We also investigate temporal changes in the number of investments that make significant contributions to each statistical factor.
+
+
+# Conclusions
+
+- state conclusions
+
+- state how conclusions help direct future work
+
+-- facilitate sensitivity and scenarios analysis / stress testing
+
+- state limitations of linear correlation
+
+-- correlation vs. causal
+
+- discuss potential for future work
+
+-- Probabilistic Graphical Models (PGM): Bayesian Networks
+
+\pagebreak
+
+# References
+
+[1]
+
+[2] Hadley Wickham Refs
+
+Fabozzi, Frank J.; Focardi, Sergio M.; Kolm, Peter N. (2010-01-29). Quantitative Equity Investing: Techniques and Strategies (Frank J. Fabozzi Series) (Kindle Location 4602). Wiley. Kindle Edition. 
+
+# Acknowledgements
+
+
+
+
+
+\pagebreak
+
+# Appendix A: GitHub Repository
+
+All of the R code used to produce this paper can be found in the following github repository:
+
+https://github.com/dgn2/IS607_Final_Project
+
+The R code required to:
+
+* extract CTA manager, program, and monthly return data from the Altegris managed futures website
+
+* create a MySQL database with tables to store extracted CTA manager, program, and monthly return data
+
+* load CTA manager, program, and monthly return data to the MySQL database
+
+* conduct limited exploratory analysis of the data
+
+* conduct limited cleaning of the data used in subsequent statistical modeling 
+
+* estimate statistical factors based on the monthly returns of a select set of CTA programs
+
+The github repository also includes the .Rmd file used to generate the .pdf working paper file.
+
+\pagebreak
+
+# Appendix B: Data Dictionary
+
+The data dictionary for the data extracted from the Altegris managed futures website can be found in the github repository: 
+
+https://github.com/dgn2/IS607_Final_Project
+
+\pagebreak
+
+# Apprendix C: Fundamental Laws of Investing
+
+
+## Compounding: Typical Return and Return Variability
+
+- outline performance
+
+## Importance of Capital Preservation
+
+The amount to recover from a loss increases geometrically with the magnitude of the loss.
+
+$$G = \left(\frac{1}{1-L}\right)-1$$
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+rRequiredToOvercomeDD <- function (DD){
+  #
+  r<-(1/(1-DD))-1
+  r
+}
+# define the range of drawdowns
+DD<-seq(from=0.01,to=0.9,by=0.01)
+# compute the gain required to recover from a drawdown
+requiredGain<-rRequiredToOvercomeDD(DD)*100
+
+timeToHitGoal<-function(goalTWR,G){
+  # compute the 
+  tToGoalTWR<-log(goalTWR)/log(G)
+  tToGoalTWR
+}
+#
+goalTWR<-requiredGain/100
+
+# define DD scenario
+scenarioDD<-c(5,10,15,20,30,40,50,60,70)
+# create geometric growth scenarios
+G<-c(1.025,1.05,1.1,1.15,1.20,1.30)^(1/12)
+eR<-(((G)^12)-1)*100
+goalTWR<-1+(requiredGain/100)
+
+
+
+expectedTimeToRecoverInMonths<-NULL
+for (g in G){
+  #
+  nYears<-timeToHitGoal(goalTWR[scenarioDD],g)/12
+  expectedTimeToRecoverInMonths<-cbind(expectedTimeToRecoverInMonths,nYears)
+}
+colnames(expectedTimeToRecoverInMonths)<-round(eR,2)
+rownames(expectedTimeToRecoverInMonths)<-scenarioDD
+# create the graph
+contour(x=scenarioDD,y=eR,z=expectedTimeToRecoverInMonths,ylab='Annual Return (%)',xlab='Drawdown (%)',main='Time to Recover in Years')
+knitr::kable(expectedTimeToRecoverInMonths,digits=2)
+```
+
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create a graph to illustrate required gain to recoup a loss
+plot(requiredGain,-DD*100,type='l',xlab='Gain Required to Recoup Loss (%)',ylab='Drawdown (%)')
+```
+
+A loss of `r DD[20]*100`% requires a gain of `r round(requiredGain[20])`% to recoup the loss. 
+
+A loss of `r DD[30]*100`% requires a gain of `r round(requiredGain[30])`% to recoup the loss. 
+
+A loss of `r DD[40]*100`% requires a gain of `r round(requiredGain[40])`% to recoup the loss. 
+
+A loss of `r DD[50]*100`% requires a gain of `r round(requiredGain[50])`% to recoup the loss. 
+
+A loss of `r DD[60]*100`% requires a gain of `r round(requiredGain[60])`% to recoup the loss. 
+
+A loss of `r DD[70]*100`% requires a gain of `r round(requiredGain[70])`% to recoup the loss. 
+
+
+
+## Importance of Diversification
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# show the VaR as we increase/decrease the importance of first factor for systematic CTAs
+
+
+```
