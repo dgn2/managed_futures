@@ -7,6 +7,10 @@ toc: yes
 ---
 
 ```{r,echo=FALSE,error=FALSE,warning=FALSE,message=FALSE}
+displayRCode_Data<-FALSE
+displayRCode_Theory<-FALSE
+displayRCode_Modeling<-FALSE
+
 displayRCode<-FALSE
 displayRErrors<-FALSE
 displayRWarnings<-FALSE
@@ -14,8 +18,6 @@ displayRMessages<-FALSE
 ```
 
 \pagebreak
-
-
 ```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # all of the code for the paper goes here
 nCtaPrograms<-200
@@ -27,13 +29,15 @@ nCtaPrograms<-200
 
 - summarize findings / outline arguments
 
+\pagebreak
+
 # Introduction and Motivation
 
 In portfolio allocation applications the objective is to maximize investors' future wealth by determining how to allocate capital among a set of available investments in such a way as to maximize *compound* growth subject to a set of constraints. Maximizing wealth requires that we take advantage of the powerful positive effects of compounding. When we reinvest, the magnitude of investment returns and the variability of those returns make *equal* contributions to compounded total return. Reducing the variability of returns thus has as much impact on total return as the magnitude of returns. The variability of portfolio return is a function of the co-variability of investment component returns. If the component returns tend to move together, the magnitude of fluctuations in the monthly value of the portfolio is higher than if the components move in different directions. A portfolio comprised of components with diversified returns will achieve higher compound growth than a portfolio with less diversified components holding average component returns constant. In the simplest terms, portfolio allocation is primarily about selecting sets of investments with *future* positive average returns and low co-variability. 
 
 As the size of a portfolio increases, the number of inter-relationships between components explodes. It becomes increasingly difficult to understand the drivers of portfolio return as the number of components rises because the number of independent parameters in a covariance matrix grows with the square of the number of investments. Grouping investments that tend to move together and focusing on trying to find groups that are independent is one common way to reduce portfolio variability. This can be accomplished through the use of *factor models*. 
 
-In this paper we focus on the application of a statistical factor models to the investment universe of Commodity Trading Advisor (CTA) programs. Our objective is to model the 
+In this paper we focus on the application of a statistical factor models to the investment universe of Commodity Trading Advisor (CTA) programs. Our objective is to model the relationships between the returns of a selected set of CTA programs and to produce a simple sensitivity of the the variability of a portfolio holding a set of CTA programs to changes in the diversity of the CTA program universe.
 
 ## Portfolio Return & Its Variability
 In this section, we introduce definitions for portfolio return and the variability that will be used in the allocation application developed in later sections of the paper.
@@ -157,9 +161,178 @@ The number of independent parameters to be estimated in the covariance matrix gr
 
 <this section is mostly complete; must be transferred from other doc>
 
+In this section we explore a small sub-set of the collected data.
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# load the library
+library(RMySQL)
+# connection parameters
+dbDriver<-dbDriver("MySQL")
+dbHost<-'localhost'
+dbPort<-3306
+dbUser<-'root'
+dbPassword<-'tgdnrx78'
+dbName<-'altegris'
+```
+
+
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# connect to the 'altegris' database
+dbHandle<-dbConnect(dbDriver,dbname = dbName,
+  host=dbHost,port=dbPort,user=dbUser, 
+  password=dbPassword)
+```
+
+
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# extract the systematic programs
+query<-paste0("SELECT * FROM altegris.cta_program_info ",
+  "WHERE column_type = 'investmentMethodology' AND ",
+  "column_name = 'Systematic' ",
+  "ORDER BY cta_name,program_name,column_type;")
+# fetch the systematic programs
+ctaSystematic<-dbGetQuery(dbHandle,query)
+```
+
+
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# assume that 'No' indicates no systematic element
+ctaSystematic[ctaSystematic[,3]=='No',3]<-0
+# assume that 'Yes' indicates 100% systematic element
+ctaSystematic[ctaSystematic[,3]=='Yes',3]<-100
+# create a histogram
+percentSystematic<-as.numeric(ctaSystematic[,3])
+# define x
+x<-seq(from=1,to=100,by=1)
+# count the number of programs with x% systematic
+systematicFrequency<-tabulate(percentSystematic)
+# set a threshold under which a program is not considered to be systematic
+systematicThreshold<-90
+# find the programs with a systematic component above the threshold
+systematicIndex<-percentSystematic>=systematicThreshold
+# find the frequency %
+systematicFrequencyPercent<-round((systematicFrequency/length(systematicIndex))*100,1)
+# extract the programs above the threshold
+programId<-ctaSystematic[systematicIndex,6]
+# create the table data frame
+distributionAboveThreshold<-data.frame(x,
+  systematicFrequencyPercent,
+  cumsum(systematicFrequencyPercent))
+# re-label the columns
+colnames(distributionAboveThreshold)<-c('% systematic',
+  '% of CTAs','Cumulative % of CTAs')
+```
+
+We can see that `r distributionAboveThreshold[100,2]`% of the programs are 100% systematic, while `r sum(distributionAboveThreshold[systematicThreshold:100,2])`% claim that the proportion of their operation that is systematic is above `r systematicThreshold`%.
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# plot the tail of the distribution
+barplot(distributionAboveThreshold[systematicThreshold:100,2],horiz=TRUE)
+# create the table
+knitr::kable(t(distributionAboveThreshold[systematicThreshold:100,1:2]))
+```
+
+As can be seen in the above table, the vast majority of firms that report a systematic component to their strategies claim that their programs are 90%, 95%, or 100% systematic.
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# extract the margin to equity data
+query<-paste0("SELECT * FROM altegris.cta_program_info ",
+  "WHERE column_type = 'investmentTermsAndInfo' AND ",
+  "column_name='Margin  Equity Ratio' ",
+  "ORDER BY cta_name,program_name,column_type;")
+# fetch the margin to equity
+ctaMarginToEquity<-dbGetQuery(dbHandle,query)
+```
+
+-create the distribution of margin to equity
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+#
+marginToEquity<-(as.numeric(ctaMarginToEquity[,3]))
+#
+leverage<-round(1/(marginToEquity/100),1)
+#
+minLeverage<-min(leverage,na.rm=TRUE)
+#
+maxLeverage<-max(leverage,na.rm=TRUE)
+#
+x<-seq(from=1,to=maxLeverage,by=1)
+#
+leverageFrequency<-tabulate(leverage)
+#
+barplot(leverageFrequency)
+```
+
+
+-geographical distribution of program operations
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# extract the sectors
+query<-paste0("SELECT * FROM altegris.cta_program_info ",
+  "WHERE column_type='sectors' ",
+  "ORDER BY cta_name,program_name,column_type;")
+# fetch the sectors
+ctaSectors<-dbGetQuery(dbHandle,query)
+```
+
+-
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# extract US programs and count the number of programs by state
+
+# create a map to display the number of CTAs by state
+
+```
+
 ## Data Cleaning
 
+The manager and program information collected is somewhat unstructured and visual inspection of the managed futures website 
 
+Our quick exploratory analysis confirms that data is reported somewhat inconsistently by CTAs. In particular, there appears to be very little validation of the manager and program information submitted by CTAs.
+
+As a result, this part of the collected data set requires a lot of cleaning and standardization before it can be used effectively in our modeling.
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+query<-paste0("SELECT DISTINCT column_value,COUNT(column_value) ",
+  "FROM altegris.cta_program_info WHERE column_type = 'address' ",
+  "AND column_name='Country' GROUP BY column_value  ORDER BY ",
+"column_value;")
+ctaCountry<-dbGetQuery(dbHandle,query)
+```
+
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+#
+countryPercent<-round(ctaCountry[,2]/sum(ctaCountry[,2]),4)
+#
+ctaCountry<-cbind(ctaCountry,countryPercent*100)
+# create the table
+colnames(ctaCountry)<-c('Country','# of Programs','% of Programs')
+knitr::kable(ctaCountry)
+```
+
+- 81% of the programs are run out of either the United States or the United Kingdom.
+
+- 1.9% do not report a Country
+
+- 
+
+Spelling errors and single countries coded with multiple names (i.e., United Kingdom, United Kingdon, or UK for instance) must be clear  
+
+\pagebreak
 
 # Theory
 
@@ -298,8 +471,11 @@ We explore
 
 - outline VaR [time permitting]
 
+## Portfolio Factor Sensitivities
 
 
+
+### Determining the Impact of Factors on Portfolio Variability
 
 
 # Modeling: Results
