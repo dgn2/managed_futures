@@ -7,7 +7,8 @@ toc: yes
 ---
 
 ```{r,echo=FALSE,error=FALSE,warning=FALSE,message=FALSE}
-displayRCode_Data<-FALSE
+displayRCode_NonPublic<-FALSE
+displayRCode_Data<-TRUE
 displayRCode_Theory<-FALSE
 displayRCode_Modeling<-FALSE
 
@@ -25,9 +26,19 @@ nCtaPrograms<-200
 
 # Abstract
 
-- outline thesis
+In this paper we focus on the application of a statistical factor model to a subset of the universe of managed futures investment programs. Our objective is to model the relationships between the returns of a select set of these investment programs and to produce a simple sensitivity providing a map of the return variability of a portfolio to changes in the diversity of the portfolio components as represented by the importance of a few factors. The paper is composed of main five sections where each section outlines one step in the data science workflow.
 
-- summarize findings / outline arguments
+-- Introduction
+
+-- Data 
+
+-- Modeling
+
+- Theory
+
+- Application
+
+-- Conclusions
 
 \pagebreak
 
@@ -35,17 +46,19 @@ nCtaPrograms<-200
 
 In portfolio allocation applications the objective is to maximize investors' future wealth by determining how to allocate capital among a set of available investments in such a way as to maximize *compound* growth subject to a set of constraints. Maximizing wealth requires that we take advantage of the powerful positive effects of compounding. When we reinvest, the magnitude of investment returns and the variability of those returns make *equal* contributions to compounded total return. Reducing the variability of returns thus has as much impact on total return as the magnitude of returns. The variability of portfolio return is a function of the co-variability of investment component returns. If the component returns tend to move together, the magnitude of fluctuations in the monthly value of the portfolio is higher than if the components move in different directions. A portfolio comprised of components with diversified returns will achieve higher compound growth than a portfolio with less diversified components holding average component returns constant. In the simplest terms, portfolio allocation is primarily about selecting sets of investments with *future* positive average returns and low co-variability. 
 
-As the size of a portfolio increases, the number of inter-relationships between components explodes. It becomes increasingly difficult to understand the drivers of portfolio return as the number of components rises because the number of independent parameters in a covariance matrix grows with the square of the number of investments. Grouping investments that tend to move together and focusing on trying to find groups that are independent is one common way to reduce portfolio variability. This can be accomplished through the use of *factor models*. 
-
-In this paper we focus on the application of a statistical factor models to the investment universe of Commodity Trading Advisor (CTA) programs. Our objective is to model the relationships between the returns of a selected set of CTA programs and to produce a simple sensitivity of the the variability of a portfolio holding a set of CTA programs to changes in the diversity of the CTA program universe.
+As the size of a portfolio increases, the number of inter-relationships between components explodes. It becomes increasingly difficult to understand the drivers of portfolio return as the number of components rises because the number of independent parameters in a covariance matrix grows with the square of the number of investments. Grouping investments that tend to move together and focusing on trying to find groups that are independent is one common way to reduce the dimension of the portfolio allocation problem. This can be accomplished through the use of statistical *factor models*.
 
 ## Portfolio Return & Its Variability
-In this section, we introduce definitions for portfolio return and the variability that will be used in the allocation application developed in later sections of the paper.
+In this section, we introduce definitions for portfolio return and variability that will be used throughout the paper.
 
 ###  Portfolio Return
-Portfolio return is obviously a function of the weights and the returns of investment components in the portfolio. We define the portfolio return for $I$ component investments for the month $m$ given the monthly returns and portfolio weights for each component investment $i$ as:
+Portfolio return is a function of the weights and the returns of portfolio investment components. We define the portfolio return for $I$ component investments for the month $m$ given the monthly returns and portfolio weights for each component investment $i$ as:
 
 $$r_{P,m}=\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)$$
+
+Letting $W_{m}$ be a vector of portfolio component weights for month $m$, $T$ denote the transpose operator, and $R_{m}$ be a vector of the month $m$ component returns, we can use matrix notation to define the portfolio return as follows:
+
+$$r_{P,m}=W^{T}R$$
 
 The holdig period return (HPR) for the portfolio is one plus the portfolio return for the month $m$:
 
@@ -53,21 +66,23 @@ $$HPR_{P,m}=1+\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)=1+r_{P,m}$$
 
 The holding period return is the factor by which we mulitply the starting value of the portfolio to get the ending value of a portfolio, given the monthly returns and weights of each component investment.
 
-Similarly, we define the terminal wealth relative (TWR) as the factor by which we multiply the starting value of the portfolio to get the ending value of the portfolio given the return streams and weights for a sequence of $M$ months:
+Similarly, we define the terminal wealth relative (TWR) as the factor by which we multiply the starting value of the portfolio to get the ending value of the portfolio given the return streams and weights for a sequence of months between one and $M$:
 
 $$TWR_{P,M}=\prod_{1=m}^{M}\left(1+\left(\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)\right)\right)=\prod_{1=m}^{M}HPR_{P,m}$$
 
-We define the portfolio compounded return for the interval $M$ as the portfolio terminal wealth relative minue one$:
+We define the portfolio compounded return for the interval from months one and $M$ as the portfolio terminal wealth relative minus one:
 
 $$r_{P,M}=\left(\prod_{1=m}^{M}\left(1+\left(\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)\right)\right)\right)-1=\left(\prod_{1=m}^{M}\left(1+r_{P,m}\right)\right)-1=\left(\prod_{1=m}^{M}HPR_{P,m}\right)-1=TWR_{P,M}-1$$
 
-## Portfolio Variability
-We define the standard deviation of the portfolio as:
+### Portfolio Return Variability
+Assuming that component returns are normally distributed, and thus that components returns are multivariate normally distributed, we can define the standard deviation of the portfolio returns using matrix notation as:
 
-$$\sigma_{P,M}=$$
+$$\sigma_{P,M}=\sqrt{Var\left( {W_{m}}^{T} R_{m} \right)}=\sqrt{{W_{m}}^T\Sigma W_{m}}$$
 
-## Parametric VaR
-We can estimate the value-at-risk (VaR) using a parameteric approach by assuming that portfolio returns are drawn from an indepedent and identically distributed normal random variable:
+Where $W_{m}$ is a vector of portfolio component weights for month $m$, $T$ denotes the transpose operator, $R_{m}$ is a vector of the month $m$ component returns, and $\Sigma$ is the return covariance matrix.
+
+### Portfolio Return Confidence Intervals:
+Using our definition of portfolio return variability we can define the expected negative fluctuation (i.e., loss) at a given confidence interval as:
 
 $$VaR = -\alpha_{CL}\sigma_{P,M}$$
 
@@ -75,14 +90,11 @@ Where
 
 $\alpha_{CL}$ is the critical value at the confidence level $CL$
 
-$\sigma_{P,M}$ is the standard deviation of the portfolio returns over the time interval $M$
+$\sigma_{P,M}$ is the standard deviation of the portfolio returns over the time interval $m=1, \dots, M$
 
-This simple parameteric model can be 
-
+This simple parameteric model can be extended in a myriad of ways to account for the established stylized facts pertaining to the statistical characteristics of investment returns. In particular, our factor-based model can be combined with any choice for the the marginal distribution of component returns, copulas can be used to include more extreme returns in the joint distribution of returns, and returns can be standardized wtih forecasts of the time-varying moments about the distribution. In this paper, we focus on the simplest possible model for the expected return distribution so that we may focus specifically on the factor model.
 
 ## Too Many Moving Parts
-
-
 
 ```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 nParametersInC <- function (I){
@@ -92,15 +104,9 @@ nParametersInC <- function (I){
 }
 ```
 
-The number of independent parameters in a covariance matrix grows with the number of investments according to the following function:
+The number of independent parameters $P$ in a covariance matrix grows with the number of investments $I$ according to the following function:
 
 $$P=\frac{I\left(I+1\right)}{2}$$
-
-Where 
-
-$P$ is the number of independent paramters in the covariance matrix
-
-$I$ is the number of distinct investments
 
 ```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # create a graph to illustrate number of model parameters by number of instruments
@@ -108,9 +114,7 @@ plot(nParametersInC(1:100),type='l',xlab='Number of Investments',ylab='Number of
 
 ```
 
-Using any 
-
-The number of independent parameters to be estimated in the covariance matrix grows with the square of the number of investments, while the number of data points available to estimate a covariance matrix grows only linearly with the number of investments. In other words, the larger the portfolio, the more historical data we need typically need to estimate the covariance matrix reliably. This is particularly problematic when our interest is in the temporal evolution of the relationships between investments in the portfolio.
+The number of independent parameters to be estimated in the covariance matrix grows with the square of the number of investments, while the number of data points available to estimate a covariance matrix grows only linearly with the number of investments. In other words, the larger the portfolio, the more historical data we typically need to estimate the covariance matrix reliably. This is particularly problematic when our interest is in the temporal evolution of the relationships between investments in the portfolio.
 
 
 
@@ -126,6 +130,12 @@ The number of independent parameters to be estimated in the covariance matrix gr
 - outline each section [Introduction & Motivation, Theory, Data, Applications in R]
 
 -- outline each subsection
+
+
+
+
+In this paper, we extract the manager, program, and monthly return data for the subset of the managed futures investment universe tracked on the Altergris website. We conduct some limited exploratory data analysis and clean the data to be used in our modeling. We create a statistical factor model using principal component analysis (PCA), then use our statistical factor model to group and interpret the relationships between available programs in the managed futures investment universe. Finally, we compute sensitivities linking the portfolio volatility of a hypothetical set of managed futures investments to changes in the importance of different factors. The sensitivities provide a powerful analytical framework to be used to understand portfolio return variation in terms of a few independent factors. 
+
 
 # Data
 
@@ -151,20 +161,9 @@ The number of independent parameters to be estimated in the covariance matrix gr
 
 ## Data Exploration
 
-- explore the manager and program information
-
-- explore the monthly return data
-
--- outlier identification
-
--- mean returns vs standard deviation of returns for each period
-
-<this section is mostly complete; must be transferred from other doc>
-
 In this section we explore a small sub-set of the collected data.
 
-
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+```{r,echo=displayRCode_NonPublic,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # load the library
 library(RMySQL)
 # connection parameters
@@ -172,12 +171,11 @@ dbDriver<-dbDriver("MySQL")
 dbHost<-'localhost'
 dbPort<-3306
 dbUser<-'root'
-dbPassword<-'tgdnrx78'
+dbPassword<-'TGDNrx78'
 dbName<-'altegris'
 ```
 
-
-
+First we connect to the altergris MySQL database.
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # connect to the 'altegris' database
@@ -186,8 +184,7 @@ dbHandle<-dbConnect(dbDriver,dbname = dbName,
   password=dbPassword)
 ```
 
-
-
+We extract the set of managed futures programs classified as 'Systematic'.
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # extract the systematic programs
@@ -199,8 +196,7 @@ query<-paste0("SELECT * FROM altegris.cta_program_info ",
 ctaSystematic<-dbGetQuery(dbHandle,query)
 ```
 
-
-
+There are three types of responses by managers. Some managers report in a binary way (i.e., either they are or are not 'Systematic'), while other managers report the approximate proportion that their operations are 'Systematic'. To make the data consistent, 'No' responses are converted to 0% and 'Yes' responses are converted to 100%.
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # assume that 'No' indicates no systematic element
@@ -232,7 +228,6 @@ colnames(distributionAboveThreshold)<-c('% systematic',
 
 We can see that `r distributionAboveThreshold[100,2]`% of the programs are 100% systematic, while `r sum(distributionAboveThreshold[systematicThreshold:100,2])`% claim that the proportion of their operation that is systematic is above `r systematicThreshold`%.
 
-
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # plot the tail of the distribution
 barplot(distributionAboveThreshold[systematicThreshold:100,2],horiz=TRUE)
@@ -240,8 +235,9 @@ barplot(distributionAboveThreshold[systematicThreshold:100,2],horiz=TRUE)
 knitr::kable(t(distributionAboveThreshold[systematicThreshold:100,1:2]))
 ```
 
-As can be seen in the above table, the vast majority of firms that report a systematic component to their strategies claim that their programs are 90%, 95%, or 100% systematic.
+As can be seen in the above table, the vast majority of firms that report a systematic component to their strategies claim that their programs are 90%, 95%, or 100% systematic. In the modeling section of the paper we will model the relationships between 
 
+Each managed futures program uses a different level of leverage. The level of allowed leverage is often a constraint set by investors. The inverse of the collected quantity, 'margin-to-equity', is the program leverage. We extract the 'margin-to-equity' as follows:
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # extract the margin to equity data
@@ -253,90 +249,122 @@ query<-paste0("SELECT * FROM altegris.cta_program_info ",
 ctaMarginToEquity<-dbGetQuery(dbHandle,query)
 ```
 
--create the distribution of margin to equity
-
+We convert the 'margin-to-equity' to leverage as follows:
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-#
+# convert the margin-to-equity to numeric
 marginToEquity<-(as.numeric(ctaMarginToEquity[,3]))
-#
+# convert the 'margin-to-equity' to leverage
 leverage<-round(1/(marginToEquity/100),1)
-#
+# find the min leverage
 minLeverage<-min(leverage,na.rm=TRUE)
-#
+# find the max leverage
 maxLeverage<-max(leverage,na.rm=TRUE)
-#
-x<-seq(from=1,to=maxLeverage,by=1)
-#
+# create the 
+xLeverage<-seq(from=1,to=maxLeverage,by=1)
+# find the frequency of different leverages
 leverageFrequency<-tabulate(leverage)
-#
+# great the graph
 barplot(leverageFrequency)
 ```
 
-
--geographical distribution of program operations
-
+Finally, we extract the returns for a single managed futures program as and create a summary of the performance as follows:
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# extract the sectors
-query<-paste0("SELECT * FROM altegris.cta_program_info ",
-  "WHERE column_type='sectors' ",
-  "ORDER BY cta_name,program_name,column_type;")
-# fetch the sectors
-ctaSectors<-dbGetQuery(dbHandle,query)
-```
-
--
-
-
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# extract US programs and count the number of programs by state
-
-# create a map to display the number of CTAs by state
+fetchMonthlyReturnsForCtaByProgramId <- function (dbHandle,programId){
+  query<-paste0("SELECT eom_date,monthly_return FROM cta_monthly_returns WHERE program_id=",
+    programId)
+  ctaReturns<-dbGetQuery(dbHandle,query)
+  eomDate<-as.POSIXct(ctaReturns[,1])
+  monthlyReturn<-ctaReturns[,2]/100
+  ctaReturn<-data.frame(eomDate,monthlyReturn,stringsAsFactors=FALSE)
+  ctaReturn
+  }
+programId<-18600
+ctaReturn<-fetchMonthlyReturnsForCtaByProgramId(dbHandle,programId)
+# compute TWR
+TWR<-cumprod(1+ctaReturn[,2])
+# plot the results
+plot(ctaReturn[,1],TWR,type='l',xlab='time',ylab='TWR',main='Abraham Diversified Program')
 
 ```
 
 ## Data Cleaning
 
-The manager and program information collected is somewhat unstructured and visual inspection of the managed futures website 
+Data cleaning of the majority of the collected data pertaining to manager and program information was beyond the scope of this project, and as a result very little of this data was used in the modeling sector of the paper. 
 
-Our quick exploratory analysis confirms that data is reported somewhat inconsistently by CTAs. In particular, there appears to be very little validation of the manager and program information submitted by CTAs.
+The manager and program information collected is somewhat unstructured and visual inspection of the managed futures website reveals many reporting inconsistencies across managers. Our quick exploratory analysis confirms that data is reported somewhat inconsistently by CTAs. In particular, there appears to be very little validation of the manager and program information submitted by CTAs. As a result, this part of the collected data set requires a lot of cleaning and standardization before it can be used effectively in our modeling.
 
-As a result, this part of the collected data set requires a lot of cleaning and standardization before it can be used effectively in our modeling.
+In this section we provide a brief example of the types of inconsistencies in the available progam and manager data.
 
+We extract the information about the geographical region of each manager as follows:
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create the query
 query<-paste0("SELECT DISTINCT column_value,COUNT(column_value) ",
   "FROM altegris.cta_program_info WHERE column_type = 'address' ",
   "AND column_name='Country' GROUP BY column_value  ORDER BY ",
 "column_value;")
+# extract the data
 ctaCountry<-dbGetQuery(dbHandle,query)
-```
-
-
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-#
-countryPercent<-round(ctaCountry[,2]/sum(ctaCountry[,2]),4)
-#
-ctaCountry<-cbind(ctaCountry,countryPercent*100)
 # create the table
-colnames(ctaCountry)<-c('Country','# of Programs','% of Programs')
+colnames(ctaCountry)<-c('Country','# of Programs')
 knitr::kable(ctaCountry)
 ```
 
-- 81% of the programs are run out of either the United States or the United Kingdom.
+Spelling errors and single countries coded with multiple names (i.e., United Kingdom, United Kingdon, or UK for instance) are clear.
+
+We can clean up the data as follows:
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# replace empty with Unreported
+ctaCountry[ctaCountry[,1]=='',1]<-'Unreported'
+# reclassify US Virgin Islands as United States
+ctaCountry[,1]<-gsub('St. Croix USVI','United States',ctaCountry[,1])
+# we clean up the US entries
+ctaCountry[,1]<-gsub('USA','United States',ctaCountry[,1])
+ctaCountry[,1]<-gsub('US','United States',ctaCountry[,1])
+# we clean up the UK entries
+ctaCountry[,1]<-gsub('UK','United Kingdom',ctaCountry[,1])
+ctaCountry[,1]<-gsub('United Kingdon','United Kingdom',ctaCountry[,1])
+# create the country factor
+countryFactor <- factor(ctaCountry[,1])
+# redo the counts by country
+cleanTable<-aggregate(x=ctaCountry[,2],by=list(countryFactor),FUN="sum")
+# compute the percent by region
+countryPercent<-round(cleanTable[,2]/sum(cleanTable[,2]),4)
+# add row names
+rownames(cleanTable)<-cleanTable[,1]
+# create the table
+cleanTable<-cbind(cleanTable,countryPercent*100)
+# remove country column
+
+# label the columns
+colnames(cleanTable)<-c('Country','# of Programs','% of Programs')
+# create the sort index
+sortIndex<-sort.int(cleanTable[,2],index.return=TRUE,decreasing=TRUE)
+# write the clean table
+knitr::kable(cleanTable[sortIndex$ix,2:3])
+```
+
+Now we can see that `r cleanTable[cleanTable[,1]=='United States',3]`% of the reporting managed futures programs are operated out of the united states and `cleanTable[cleanTable[,1]=='United Kingdom',3]`% are operated out of the United Kingdom.
+
+
+What we can 81% of the programs are run out of either the United States or the United Kingdom.
 
 - 1.9% do not report a Country
 
 - 
 
-Spelling errors and single countries coded with multiple names (i.e., United Kingdom, United Kingdon, or UK for instance) must be clear  
+
 
 \pagebreak
 
-# Theory
+# Modeling
 
-## Modeling Context
+In this section we first outline underlying 
+
+## Theory
 In the previous section, we provided an overview of the process used to obtain the monthly returns for all distinct CTA programs available in the Altegris managed futures database. 
 
 <in this sector we provide the mathematical details associated with the statistical factor model employed in the application section of this >
@@ -345,7 +373,7 @@ In this section, we provide a brief overview the theoretical underpinnings of th
 
 <summary sent. to describe what is to follow in this section>
 
-### Standardized Returns
+#### Standardized Returns
 Standardization rescales a variable while preserving its order. <add info from the matrix decomposition book>
 
 We denote the monthly return of the $i^{th}$ investment for the $m^{th}$ month as $r_{i,m}$ and define the standardized return as:
@@ -369,7 +397,7 @@ Using a little linear algebra we can standardize the return with the following o
 
 <define the sigma with algebra>
 
-### Correlations
+#### Correlations
 We represent the standardized returns as an $I$ x $M$ matrix $\hat{R}$ with an empirical correlation matrix $C$ defined as:
 
 $$C = \frac{1}{M}\hat{R}\hat{R}^{T}$$
@@ -397,12 +425,12 @@ $$\Sigma_{\hat{R}}=\frac{\hat{R}^{T}\hat{R}}{M}-\left( \bar{R_{i}}\bar{R_{j}}\ri
 
 
 
-## Principal Component Analysis (PCA)
+### Principal Component Analysis (PCA)
 The objective of principal component analysis (PCA) is to find a linear transformation $\Omega$ that maps a set of observed variables $\hat{R}$ into a set of uncorrelated variables $F$. We define the $I$ x $M$ statistical factor matrix as
 
 $$F = \Omega\hat{R}$$ []
 
-Where each row $f_{k}$ ($k = 1, \dot ,N$) corresponds to a factor $F$ of $\hat{R}$ and the transformation matrix $\Omega$ has elements $\omega_{k,i}$. The first row of $\omega_{1}$ (which contains the first set of factor coefficients) is chosen such that the first factor ($f_{1}$) is aligned with the direction of maximal variance in the $I$-dimensional space defined by $\hat{R}$. Each subsequent factor ($f_{k}$) accounts for as much of the remaining variance of the standardized returns $\hat{R}$ as possible, subject to the constraint that the $\omega_{k}$ are mutually orthogonal. We further constrain the vectors $\omega_{k}$ by requiring that $\omega_{k}\omega_{k}^{T}=1$ for all $k$.
+Where each row $f_{k}$ ($k = 1, \dots ,N$) corresponds to a factor $F$ of $\hat{R}$ and the transformation matrix $\Omega$ has elements $\omega_{k,i}$. The first row of $\omega_{1}$ (which contains the first set of factor coefficients or 'loadings') is chosen such that the first factor ($f_{1}$) is aligned with the direction of maximal variance in the $I$-dimensional space defined by $\hat{R}$. Each subsequent factor ($f_{k}$) accounts for as much of the remaining variance of the standardized returns $\hat{R}$ as possible, subject to the constraint that the $\omega_{k}$ are mutually orthogonal. The vectors $\omega_{k}$ are further constrained by requiring that $\omega_{k}\omega_{k}^{T}=1$ for all $k$.
 
 The correlation matrix $C$ is an $I$ x $I$ diagonalizable symmetric matrix that can be written in the form
 
@@ -415,7 +443,7 @@ The eigenvectors of the correlation matrix $C$ correspond to the directions of m
 
 If the sign of every coefficient in a statistical factor $f_{k}$ is reversed, neither the variance of $f_{k}$ nor the orthogonality of $\omega$ with respect to each of the other eigenvectors changes. For this reason, the signs of factors (PCs) are arbitrary. This feature of PCA can be problematic when we are interested in the temporal evolution of factors.
 
-### Proportion of Variance
+#### Proportion of Variance
 
 ```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # find the number of significant principal components (PCs)
@@ -451,9 +479,9 @@ The proportion of the variance from the $k^{th}$ factor is equal to the ratio of
 
 The large variance in investment returns explained by a single factor implies that there is a large amount of common variation in the investment universe.
 
-## Random Matrix Theory (RMT)
+### Random Matrix Theory (RMT)
 
-### Number of Significant Components
+#### Number of Significant Components
 determine how many statistical factors are needed to describe the correlations between investments
 PCA is widely used to produce lower-dimensional representations of multivariate data by retaining a few "significant" components and discarding all other components. Many heuristic methods have been proposed for determining the number of significant factors, but there is no widespread agreement on an optimal approach
 
@@ -471,14 +499,15 @@ We explore
 
 - outline VaR [time permitting]
 
-## Portfolio Factor Sensitivities
+### Portfolio Factor Sensitivities
+
+-math for increasing/decreasing importance of factors
 
 
+#### Determining the Impact of Factors on Portfolio Variability
 
-### Determining the Impact of Factors on Portfolio Variability
 
-
-# Modeling: Results
+## Applicaton
 
 - data driven approach 
 
@@ -493,11 +522,11 @@ We explore
 - algorithm of the statistical method evaluates the data and compares the results against the criteria. 
 
 
-## Data Preprocessing
+### Data Preprocessing
 
 - de-trend and scale the returns
 
-## Statistical Factor Analysis
+### Statistical Factor Analysis
 
 ###  
 
@@ -511,10 +540,10 @@ In this section was
 
 - universe diversification over time
 
-### Significant Statistical Factor Coefficients
+#### Significant Statistical Factor Coefficients
 An increase in the variance for which a factor accounts might be the result of increases in the correlations among only a few assets (which then have large factor coefficients) or a effect in which many investments begin to make significant contributions to the factor, This is an important distinction, because the two types of changes have very different implications for portfolio management. It becomes much more difficult to reduce risk by diversifying across different investment when correlations between all investments increase. In contrast, increases in correlations within an investment type that are not accompanied by increases in correlations between investment types have a less significant impact on diversification.
 
-#### Inverse Participation Ratio (IPR)
+##### Inverse Participation Ratio (IPR)
 
 ```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # define the inverse participation ratio (IPR)
@@ -552,7 +581,7 @@ The inverse of the IPR - the so-called participation ratio - provides a more int
 
 $PR = \frac{1}{IPR_{k}}$
 
-### Temporal Evolution
+#### Temporal Evolution
 We show as a function of time the fraction of the variance $frac{d_{k}}{N}$ due to the first `r nSignificantPCs` statistical factors $f_{k} (k=1,...,$ `r nSignificantPCs`$)$.
 
 We also investigate temporal changes in the number of investments that make significant contributions to each statistical factor.
@@ -578,17 +607,33 @@ We also investigate temporal changes in the number of investments that make sign
 
 # References
 
-[1]
+[1] C. Bacon [2008], Practical Portfolio Performance Measurement and Attribution, $2^{nd}$ Ed, John Wiley & Sons, Inc.
 
-[2] Hadley Wickham Refs
+[2] D. J. Fenn, N. F. Johnson, N. S. Jones, M. McDonald, M. A. Porter, S. Williams [2011], Temporal evolution of financial-market correlations, Physical Review E 84, 026109
 
-Fabozzi, Frank J.; Focardi, Sergio M.; Kolm, Peter N. (2010-01-29). Quantitative Equity Investing: Techniques and Strategies (Frank J. Fabozzi Series) (Kindle Location 4602). Wiley. Kindle Edition. 
+[3] F. J. Fabozzi, S. M. Focardi, P. N. Kolm [2010], Quantitative Equity Investing: Techniques and Strategies (Frank J. Fabozzi Series), John Wiley & Sons, Inc.
+
+[4] N. Fenton, M. Neil [2013], Risk Assessment and Decision Analysis With Bayesian Networks, CRC Press
+
+[5] D. Koller, N. Friedman [2009], Probabilistic graphical models: principles and techniques, MIT press.
+
+[6] A. Golub and Z. Guo [2012], Correlation Stress Tests Under the Random Matrix Theory: An Empirical Implementation to the Chinese Market
+
+[7] A Meucci [2009], Risk and Asset Allocation, $1^{st}$ Ed, Springer Berlin Heidelberg
+
+[8] R. Rebonato [2010], Plight of the Fortune Tellers: Why We Need to Manage Financial Risk Differently, Princeton University Press
+
+[9] R. Rebonato [2010], Coherent Stress Testing: A Bayesian Approach to the Analysis of Financial Stress , John Wiley & Sons, Inc.
+
+[10] R. Rebonato and A. Denev [2014], Portfolio Management Under Stress: A Bayesian-net Approach to Coherent Asset Allocation, Cambridge University Press
+
+[11] D. Skillicorn [2007], Understanding Complex Datasets: Data Mining with Matrix Decompositions, Chapman and Hall/CRC
+
+[12] R. Vince [2007], The Handbook of Portfolio Mathematics: Formulas for Optimal Allocation and Leverage, John Wiley & Sons, Inc.
 
 # Acknowledgements
 
-
-
-
+I would like to acknowledge discussions with Paul Britton and Jean de Caruful of Apollo Systems Research Corporation. Both individuals have provided feedback about the ideas presented in this paper over the years. The views expressed in this paper do not reflect the views of my current employer, the Canadian Medical Protective Association, or any of my previous employers, including Apollo Systems Research Corporation.
 
 \pagebreak
 
