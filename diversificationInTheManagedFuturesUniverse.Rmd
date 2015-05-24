@@ -12,6 +12,7 @@ displayRCode_Data<-TRUE
 displayRCode_Theory<-FALSE
 displayRCode_Modeling<-FALSE
 
+displayRCode_Table<-FALSE
 displayRCode<-FALSE
 displayRErrors<-FALSE
 displayRWarnings<-FALSE
@@ -883,7 +884,7 @@ ctaList<-dbGetQuery(dbHandle,query)
 programIds<-ctaList['program_id']
 ```
 
-We can iterate over each program with historical data going back further than `r minDate` and extract the return data, adding each CTA program return stream to the group.
+We can iterate over each program with historical data available prior to `r minDate` and extract the return data, adding each CTA program return stream to the group.
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # create the xts object to hold the group data
@@ -908,6 +909,17 @@ for (programIndex in 1:dim(programIds)[1]){
   # add the individual progrma data to the group
   groupData <- merge(groupData, recentData)
 }
+groupDataDimension<-dim(groupData)
+```
+
+We extract `r groupDataDimension[1]` months of CTA program return data for `r groupDataDimension[2]` distinct managed futures programs.
+
+Our data includes most of the managers with the most impressive track records.
+
+```{r,echo=displayRCode_Table,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+oldCtaIndex<-sort.int(ctaList[,4],index.return=TRUE)
+ctaListingTable<-ctaList[oldCtaIndex$ix,c(1,2,4)]
+knitr::kable(head(ctaListingTable,10))
 ```
 
 ## Data Cleaning
@@ -970,6 +982,12 @@ knitr::kable(cleanTable[sortIndex$ix,2:3])
 
 Now we can see that `r cleanTable[cleanTable[,1]=='United States',3]`% of the reporting managed futures programs are operated out of the united states and `r cleanTable[cleanTable[,1]=='United Kingdom',3]`% are operated out of the United Kingdom. The vast majority of programs are operated out of these two regions (`r cleanTable[cleanTable[,1]=='United States',3]+cleanTable[cleanTable[,1]=='United States',3]`%). It is also notable that `r cleanTable[cleanTable[,1]=='United States',3]`% of managers do not provide information about their geographical location.
 
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# disconnect from the 'altegris' database
+dbDisconnect(dbHandle)
+```
+
 \pagebreak
 
 # Modeling
@@ -1002,13 +1020,6 @@ $\bar{r}_{i,M}=\frac{1}{M}\sum_{m=1}^{M}\left(\hat{r}_{m}\right)$ is the mean of
 
 $\sigma(r_{i,M})=$ is the standard deviation of the returns for the $i^{th}$ investment over the time interval $M$
 
-
-Using a little linear algebra we can standardize the return with the following operation:
-
-<define the mean with algebra>
-
-<define the sigma with algebra>
-
 #### Correlations
 We represent the standardized returns as an $I$ x $M$ matrix $\hat{R}$ with an empirical correlation matrix $C$ defined as:
 
@@ -1019,23 +1030,6 @@ Where
 $T$ denotes the matrix transform
 
 The correlation matrix ($C$) of returns ($\hat{R}$) and the covariance matrix ($\Sigma_{\hat{R}}$) of standardized returns ($\hat{R}$) are identical.
-
-
-<mean return>
-
-$\bar{r}_{i}=\frac{1^{T}\hat{r}_{i}}{I}$
-
-<standard deviation>
-
-
-<covariance>
-
-$$\sigma_{i,j}=\frac{1}{M}\hat{r}_{i}^{T}\hat{r}_{j}-\bar{r}_{i}\bar{r}_{j}$$
-
-$$\Sigma_{\hat{R}}=\frac{\hat{R}^{T}\hat{R}}{M}-\left( \bar{R_{i}}\bar{R_{j}}\right)$$
-
-
-
 
 ### Principal Component Analysis (PCA)
 The objective of principal component analysis (PCA) is to find a linear transformation $\Omega$ that maps a set of observed variables $\hat{R}$ into a set of uncorrelated variables $F$. We define the $I$ x $M$ statistical factor matrix as
@@ -1085,31 +1079,10 @@ $$\frac{\sigma^{2}(f_{k})}{\Sigma_{i=1}^{I}\sigma^{2}(\hat{r_{i}})}=\frac{d_{k}}
 
 The proportion of the variance from the $k^{th}$ factor is equal to the ratio of the $k^{th}$ largest eigenvalue $d_{k}$ to the number of investments $I$.
 
-
-
-
-
-The large variance in investment returns explained by a single factor implies that there is a large amount of common variation in the investment universe.
-
-### Random Matrix Theory (RMT)
-
 #### Number of Significant Components
-determine how many statistical factors are needed to describe the correlations between investments
-PCA is widely used to produce lower-dimensional representations of multivariate data by retaining a few "significant" components and discarding all other components. Many heuristic methods have been proposed for determining the number of significant factors, but there is no widespread agreement on an optimal approach
+To determine how many statistical factors are needed to describe the correlations between investments, many methods have been proposed. There is no widespread agreement on an optimal approach. In this paper we select the most stra
 
-Apply two techniques to find the number of significant components. The assumes that a factor is significant if its eigenvalue $d > 1/N$. Any component that satisfies this criterion accounts for more than a fraction ($1/N$) of the variance of the system. It is considered significant because it is assumed to summarize more information than any single original variable. The second approach is to compare the observed eigenvalues to the eigenvalues for random data and can be understood by considering the scree plot (figure ???). A scree plot shows the magnitudes of the eigenvalues as a function of the eigenvalue index, where the eigenvalues are sorted such that $\beta 1 \beta 2 \beta N$. The leftmost data point in the scree plot indicates the magnitude of the largest eigenvalue, and the rightmost data point indicates the magnitude of the smallest eigenvalue. The number of significant PCs is given by the number of eigenvalues in the scree plot for which the eigenvalue for the observed data is larger than the corresponding eigenvalue for random data
-
-We explore 
-
-- topic intro
-
-- outline how we determine # of significant components
-
-## 
-
-- outline factor sensitivities [time permitting]
-
-- outline VaR [time permitting]
+Apply two techniques to find the number of significant components. The assumes that a factor is significant if its eigenvalue $d > 1/N$. Any component that satisfies this criterion accounts for more than a fraction ($1/N$) of the variance of the system. It is considered significant because it is assumed to summarize more information than any single original variable. 
 
 ### Portfolio Factor Sensitivities
 
@@ -1148,7 +1121,53 @@ longDf<-melt(df,id="date")
 
 ### Data Preprocessing
 
-- de-trend and scale the returns
+```{r}
+# standardize returns
+standardize<-function(x) (x - mean(x,na.rm=TRUE)) / sd(x,na.rm=TRUE)
+# unstandardize returns
+unstandardize<-function(scaledX,meanX,sdX) ((scaledX * as.vector(sdX)) + as.vector(meanX))
+#
+unstandardizePaths <- function (scaledX,meanX,sdX){
+  # get column labels
+  columnNames<-colnames(scaledX)
+  # get row labels
+  rowNames<-rownames(scaledX)
+  # find the rows and columns of the input matrix  
+  dimension<-dim(scaledX)
+  # create matrix to store unstandardized
+  unstandardizedReturns<-matrix(0,dimension[1],dimension[2])
+  for (pathIndex in 1:dimension[2]){
+    # reverse standardization
+    unstandardizedReturns[,pathIndex]<-unstandardize(scaledX[,pathIndex],
+      meanX[pathIndex],sdX[pathIndex])
+  }
+  # add column labels
+  colnames(unstandardizedReturns)<-columnNames
+  # add row labels
+  rownames(unstandardizedReturns)<-rowNames
+  # return standardized paths
+  unstandardizedReturns
+}
+```
+
+
+
+```{r,error=FALSE,warning=FALSE}
+# find the mean return
+componentReturn<-apply(groupData,2, na.rm = TRUE,mean)
+# find the variance
+componentVariance<-apply(groupData,2, na.rm = TRUE,var)
+# find the standard deviation
+componentVolatility<-apply(groupData,2, na.rm = TRUE,sd)
+# standardize the returns
+standardizedReturns<-apply(groupData,2,standardize)
+```
+
+
+```{r}
+# compute the correlation
+C <- cor(standardizedReturns,use="na.or.complete")
+```
 
 ### Statistical Factor Analysis
 
@@ -1210,10 +1229,7 @@ We show as a function of time the fraction of the variance $frac{d_{k}}{N}$ due 
 
 We also investigate temporal changes in the number of investments that make significant contributions to each statistical factor.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# disconnect from the 'altegris' database
-dbDisconnect(dbHandle)
-```
+The large variance in investment returns explained by a single factor implies that there is a large amount of common variation in the investment universe.
 
 
 # Conclusions
@@ -1262,7 +1278,7 @@ dbDisconnect(dbHandle)
 
 # Acknowledgements
 
-I would like to acknowledge discussions with Paul Britton and Jean de Caruful of Apollo Systems Research Corporation. Both individuals have provided feedback about the ideas presented in this paper over the years. The views expressed in this paper do not reflect the views of my current employer, the Canadian Medical Protective Association, or any of my previous employers, including Apollo Systems Research Corporation.
+I would like to acknowledge useful discussions with Paul Britton and Jean de Carufel of Apollo Systems Research Corporation. Both individuals have provided feedback about the ideas presented in this paper over the years. The views expressed in this paper do not reflect the views of my current employer, the Canadian Medical Protective Association (CMPA), or any of my previous employers, including Apollo Systems Research Corporation.
 
 \pagebreak
 
