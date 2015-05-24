@@ -2,7 +2,7 @@
 title: "Diversification in the Managed Futures Universe"
 author: "Derek G. Nokes, CUNY"
 date: "Friday, May 22, 2015"
-output: html_document
+output: pdf_document
 toc: yes
 ---
 
@@ -16,6 +16,55 @@ displayRCode<-FALSE
 displayRErrors<-FALSE
 displayRWarnings<-FALSE
 displayRMessages<-FALSE
+```
+
+```{r,echo=FALSE,error=FALSE,warning=FALSE,message=FALSE}
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  require(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+```
 ```
 
 \pagebreak
@@ -814,13 +863,51 @@ fetchMonthlyReturnsForCtaByProgramId <- function (dbHandle,programId){
   ctaReturn<-data.frame(eomDate,monthlyReturn,stringsAsFactors=FALSE)
   ctaReturn
   }
-programId<-18600
-ctaReturn<-fetchMonthlyReturnsForCtaByProgramId(dbHandle,programId)
-# compute TWR
-TWR<-cumprod(1+ctaReturn[,2])
-# plot the results
-plot(ctaReturn[,1],TWR,type='l',xlab='time',ylab='TWR',main='Abraham Diversified Program')
+```
 
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+library('quantmod')
+library("reshape2")
+library("ggplot2")
+library('ggthemes')
+library('RColorBrewer')
+library('FactoMineR')
+library('hash')
+
+minDate<-"2005-01-01"
+query<-paste0("SELECT DISTINCT cta_name,program_name,program_id,MIN(eom_date) AS minDate ",
+  "FROM altegris.cta_monthly_returns WHERE eom_date<'",
+  minDate,"' GROUP BY program_id ORDER BY cta_name;")
+ctaList<-dbGetQuery(dbHandle,query)
+programIds<-ctaList['program_id']
+```
+
+We can iterate over each program with historical data going back further than `r minDate` and extract the return data, adding each CTA program return stream to the group.
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create the xts object to hold the group data
+groupData <- xts()
+
+for (programIndex in 1:dim(programIds)[1]){
+  # get the program ID
+  programId<-programIds[programIndex,1]
+  # get the CTA name
+  ctaName<-ctaList[programIndex,2]
+  # fetch the program returns
+  ctaReturn<-fetchMonthlyReturnsForCtaByProgramId(dbHandle,programId)
+  dataObject<-xts(ctaReturn[,2],order.by=as.POSIXct(ctaReturn[,1],format='%Y-%m-%d'))
+  recentData<-last(dataObject,'10 year')
+  df<-data.frame(date=index(recentData),coredata(recentData))
+  # create the individual graph
+  p1 <- ggplot(ctaReturn, aes(x=eomDate, y=cumprod(1+monthlyReturn))) + geom_line() + 
+    ggtitle(ctaName)+xlab('Time')+ylab('Terminal Wealth Relative (TWR)')+theme_economist()+
+    scale_colour_economist()
+  # label the return data with the program ID
+  colnames(recentData)<-programId
+  # add the individual progrma data to the group
+  groupData <- merge(groupData, recentData)
+}
 ```
 
 ## Data Cleaning
@@ -1047,6 +1134,18 @@ We explore
 - algorithm of the statistical method evaluates the data and compares the results against the criteria. 
 
 
+
+
+
+
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create the terminal wealth relative (TWR) data frame
+df<-data.frame(date=index(groupData),apply(1+coredata(groupData),2,cumprod))
+# convert the 'wide' form data to 'long' form 
+longDf<-melt(df,id="date")
+```
+
+
 ### Data Preprocessing
 
 - de-trend and scale the returns
@@ -1110,6 +1209,11 @@ $PR = \frac{1}{IPR_{k}}$
 We show as a function of time the fraction of the variance $frac{d_{k}}{N}$ due to the first `r nSignificantPCs` statistical factors $f_{k} (k=1,...,$ `r nSignificantPCs`$)$.
 
 We also investigate temporal changes in the number of investments that make significant contributions to each statistical factor.
+
+```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# disconnect from the 'altegris' database
+dbDisconnect(dbHandle)
+```
 
 
 # Conclusions
