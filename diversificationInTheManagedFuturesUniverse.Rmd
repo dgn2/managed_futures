@@ -1199,7 +1199,6 @@ factorBasedCorrelationSensitivity<-function (numberOfFactors,C){
   for (factorIndex in 1:numberOfFactors){
     # perturb the factor
     scenarios<-perturbFactorCorrelation(factorIndex,eigenvalues,eigenvectors)
-    print(scenarios)
     scenariosByFactor[paste0('factor_',factorIndex)]<-scenarios
     #
     scenarioIndices<-sort(as.numeric(gsub('scenario_','',
@@ -1212,8 +1211,7 @@ factorBasedCorrelationSensitivity<-function (numberOfFactors,C){
 
 ## Applicaton
 
-In this section we apply the theory outlined in the above section. In particular, we build a simple factor model of managed futures program returns and use it to create sensitivities that map the proportion of total variance in the investment universe to portfolio variation. This sensitivity owns us to monitor the time-varying proportion of variance explained by the first few statistical factors and instantly convert this measure into a portfolio variability. This is particularly useful during times of crisis when the importance of the first few factors increase significantly. 
-
+In this section we apply the theory outlined in the above section. In particular, we build a simple factor model of managed futures program returns and use it to create sensitivities that map the proportion of total variance in the investment universe to portfolio variation. This sensitivity allows us to monitor the time-varying proportion of variance explained by the first few statistical factors and instantly convert these measures of market state into portfolio variability. This is particularly useful during times of crisis when the importance of the first few factors increase significantly.
 
 ```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # create the terminal wealth relative (TWR) data frame
@@ -1227,7 +1225,7 @@ longDf<-melt(df,id="date")
 
 Prior to any modeling, we standardize the managed futures program returns.
 
-```{r}
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # standardize returns
 standardize<-function(x) (x - mean(x,na.rm=TRUE)) / sd(x,na.rm=TRUE)
 # unstandardize returns
@@ -1258,7 +1256,7 @@ unstandardizePaths <- function (scaledX,meanX,sdX){
 
 
 
-```{r,error=FALSE,warning=FALSE}
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # find the mean return
 componentReturn<-apply(groupData,2, na.rm = TRUE,mean)
 # find the variance
@@ -1271,7 +1269,7 @@ standardizedReturns<-apply(groupData,2,standardize)
 
 We compute the correlation
 
-```{r}
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # compute the correlation
 C <- cor(standardizedReturns,use="na.or.complete")
 ```
@@ -1280,7 +1278,7 @@ C <- cor(standardizedReturns,use="na.or.complete")
 
 We now decompose the correlation matrix into statistical factors.
 
-```{r}
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # compute the eigendecomposition
 decomposition=eigen(C)
 eigenvalues=decomposition$values
@@ -1292,7 +1290,7 @@ explainedVariance=cumsum(proportionOfVariance)
 
 The top 5 factors explain a very significant proportion of the total variance.
 
-```{r}
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 makeFactorName<-function (x){ paste0('Factor ',x)}
 x<-1:groupDataDimension[2]
 factorNames<-makeFactorName(x)
@@ -1309,7 +1307,7 @@ When we sort the factor loadings by the first factor we can see that the all but
 
 The ten smallest factor loadings are:
 
-```{r}
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # bind the CTA names, program names, and eigenvectors (factor loadings)
 factorTable<-cbind(ctaNames,ctaPrograms,eigenvectors)
 colnames(factorTable)<-c('Manager Name','Program Name',factorNames)
@@ -1322,7 +1320,7 @@ knitr::kable(head(factorTable[factor_1_Index$ix,c(1,2,3)],10),digits=4,
 
 The ten largest factor loadings are:
 
-```{r}
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # create the table to show the ten largest factor loadings
 knitr::kable(tail(factorTable[factor_1_Index$ix,c(1,2,3)],10),digits=4,
   caption='Largest Factor 1 Loadings')
@@ -1330,7 +1328,7 @@ knitr::kable(tail(factorTable[factor_1_Index$ix,c(1,2,3)],10),digits=4,
 
 The first factor can be thus thought of as a 'long directional volatility' factor.
 
-```{r}
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # create the participation ratio for all statistical factors
 participationRatio<-NULL
 for (k in 1:groupDataDimension[2]){ 
@@ -1347,7 +1345,9 @@ Although more examination of the factors would be required to get an deeper intu
 
 #### Determining the Impact of Factors on Portfolio Variability
 
-```{r}
+We can perturb the importance of the first factor up and down and use our equation for portfolio standard deviation to determine the impact of on a portfolio with equal allocations to our `r groupDataDimension[2]` managed futures programs.
+
+```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 numberOfFactors<-1
 numberOfScenarios<-25
 scenarioByFactor<-factorBasedCorrelationSensitivity(numberOfFactors,C)
@@ -1359,7 +1359,7 @@ correlationScenarios<-matrix(0,numberOfScenarios,dimension[1]*dimension[2])
 proportionOfVarianceByFactor<-hash()
 correlationScenariosByFactor<-hash()
 varianceScenarios<-matrix(0,numberOfScenarios,dimension)
-portfolioV<-matrix(0,numberOfScenarios,2)
+portfolioV<-matrix(0,numberOfScenarios,numberOfFactors)
 for (factorIndex in 1:numberOfFactors){
   for (scenarioIndex in 1:numberOfScenarios){
     #
@@ -1371,16 +1371,16 @@ for (factorIndex in 1:numberOfFactors){
     # 
     portfolioV[scenarioIndex,factorIndex]<-portfolioVolatility(W,C)
     
-    correlationScenarios[scenarioIndex,]<-matrix(C,1,dimension[1]*dimension[2])
+    #correlationScenarios[scenarioIndex,]<-matrix(C,1,dimension[1]*dimension[2])
   }
-  proportionOfVarianceByFactor[paste0('factor_',factorIndex)]<-vv
-  correlationScenariosByFactor[paste0('factor_',factorIndex)]<-correlationScenarios
+  #proportionOfVarianceByFactor[paste0('factor_',factorIndex)]<-vv
+  #correlationScenariosByFactor[paste0('factor_',factorIndex)]<-correlationScenarios
 }
 
 plot(varianceScenarios[,1]*100,portfolioV[,1]*100,
   xlab='Proportion of Total Variance - 1st Factor (%)',
   ylab='Portfolio Variance (%)',
-  main='Sensitivity Of Portfolio Variance to Changes in the Importance of the First Factor')
+  main='Factor Sensitivity: Portfolio Variance & the Importance of the First Factor')
 ```
 
 As the proportion of the portfolio variance explained by the first factor increases, the portfolio variance increases. Using this sensitivity measure, we can track the current proportion of variance explained by the first factor and instantly know the impact on the variation of portfolio returns.
@@ -1423,9 +1423,9 @@ Our factor analysis revealed a very significant proportion of the total variance
 
 All of the R code used to produce this paper can be found in the following github repository:
 
-https://github.com/dgn2/managed_futures/find/master
+https://github.com/dgn2/managed_futures
 
-The R code required to:
+The .Rmd is available to:
 
 * extract CTA manager, program, and monthly return data from the Altegris managed futures website
 
@@ -1439,6 +1439,8 @@ The R code required to:
 
 * estimate statistical factors based on the monthly returns of a select set of CTA programs
 
+* compute sensitivities
+
 The github repository also includes the .Rmd file used to generate the .pdf working paper file.
 
 \pagebreak
@@ -1447,16 +1449,11 @@ The github repository also includes the .Rmd file used to generate the .pdf work
 
 The data dictionary for the data extracted from the Altegris managed futures website can be found in the github repository: 
 
-https://github.com/dgn2/IS607_Final_Project
+https://github.com/dgn2/managed_futures
 
 \pagebreak
 
 # Apprendix C: Fundamental Laws of Investing
-
-
-## Compounding: Typical Return and Return Variability
-
-- outline performance
 
 ## Importance of Capital Preservation
 
