@@ -921,7 +921,7 @@ Our data includes most of the managers with the most impressive track records.
 oldCtaIndex<-sort.int(ctaList[,4],index.return=TRUE)
 ctaListingTable<-ctaList[oldCtaIndex$ix,c(1,2,4)]
 knitr::kable(head(ctaListingTable,10),caption=paste0('Sample of 10 of the ',
-  groupDataDimension[2],' Programs')
+  groupDataDimension[2],' Programs'))
 ```
 
 ## Data Cleaning
@@ -944,7 +944,7 @@ query<-paste0("SELECT DISTINCT column_value,COUNT(column_value) ",
 ctaCountry<-dbGetQuery(dbHandle,query)
 # create the table
 colnames(ctaCountry)<-c('Country','# of Programs')
-knitr::kable(ctaCountry)
+knitr::kable(ctaCountry,caption='Programs By Country - Raw')
 ```
 
 Spelling errors and single countries coded with multiple names (i.e., United Kingdom, United Kingdon, or UK for instance) are clear.
@@ -979,7 +979,7 @@ colnames(cleanTable)<-c('Country','# of Programs','% of Programs')
 # create the sort index
 sortIndex<-sort.int(cleanTable[,2],index.return=TRUE,decreasing=TRUE)
 # write the clean table
-knitr::kable(cleanTable[sortIndex$ix,2:3])
+knitr::kable(cleanTable[sortIndex$ix,2:3],caption='Programs By Country - Cleaned')
 ```
 
 Now we can see that `r cleanTable[cleanTable[,1]=='United States',3]`% of the reporting managed futures programs are operated out of the united states and `r cleanTable[cleanTable[,1]=='United Kingdom',3]`% are operated out of the United Kingdom. The vast majority of programs are operated out of these two regions (`r cleanTable[cleanTable[,1]=='United States',3]+cleanTable[cleanTable[,1]=='United Kingdom',3]`%). It is also notable that `r cleanTable[cleanTable[,1]=='Unreported',3]`% of managers do not provide information about their geographical location.
