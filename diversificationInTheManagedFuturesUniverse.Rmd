@@ -123,7 +123,7 @@ As the size of a portfolio increases, the number of inter-relationships between 
 In this section, we introduce definitions for portfolio return and variability that will be used throughout the paper.
 
 ###  Portfolio Return
-Portfolio return is a function of the weights and the returns of portfolio investment components. We define the portfolio return for $I$ component investments for the month $m$ given the monthly returns $r_{i,m}$ and portfolio weights $w_{i,m}$ for each component investment $i$ as:
+Portfolio return $r_{P,m}$ is a function of the weights and the returns of portfolio investment components. We define the portfolio return for $I$ component investments for the month $m$ given the monthly returns $r_{i,m}$ and portfolio weights $w_{i,m}$ for each component investment $i$ as:
 
 $$r_{P,m}=\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)$$
 
@@ -137,16 +137,16 @@ $$HPR_{P,m}=1+\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)=1+r_{P,m}$$
 
 The holding period return is the factor by which we mulitply the starting value of the portfolio to get the ending value of a portfolio, given the monthly returns and weights of each component investment.
 
-Similarly, we define the terminal wealth relative (TWR) as the factor by which we multiply the starting value of the portfolio to get the ending value of the portfolio given the return streams and weights for a sequence of months between one and $M$:
+Similarly, we define the terminal wealth relative (TWR) as the factor by which we multiply the starting value of the portfolio to get the ending value of the portfolio given the return streams and weights for a sequence of months between one to $M$:
 
 $$TWR_{P,M}=\prod_{1=m}^{M}\left(1+\left(\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)\right)\right)=\prod_{1=m}^{M}HPR_{P,m}$$
 
-We define the portfolio compounded return for the interval from months one and $M$ as the portfolio terminal wealth relative minus one:
+We define the portfolio compounded return for the interval from months one to $M$ as the portfolio terminal wealth relative minus one:
 
 $$r_{P,M}=\left(\prod_{1=m}^{M}\left(1+\left(\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)\right)\right)\right)-1=\left(\prod_{1=m}^{M}\left(1+r_{P,m}\right)\right)-1=\left(\prod_{1=m}^{M}HPR_{P,m}\right)-1=TWR_{P,M}-1$$
 
 ### Portfolio Return Variability
-Assuming that component returns are normally distributed, and thus that components returns are multivariate normally distributed, we can define the standard deviation of the portfolio returns using matrix notation as:
+Assuming that component returns are normally distributed, and thus that portfolio returns are multivariate normally distributed, we can define the standard deviation of the portfolio returns using matrix notation as:
 
 $$\sigma_{P,M}=\sqrt{Var\left( {W_{m}}^{T} R_{m} \right)}=\sqrt{{W_{m}}^T\Sigma W_{m}}$$
 
@@ -169,7 +169,7 @@ $\alpha_{CL}$ is the critical value at the confidence level $CL$
 
 $\sigma_{P,M}$ is the standard deviation of the portfolio returns over the time interval $m=1, \dots, M$
 
-This simple parameteric model can be extended in a myriad of ways to account for the established stylized facts pertaining to the statistical characteristics of investment returns. In particular, our factor-based model can be combined with any choice for the the marginal distribution of component returns, copulas can be used to include more extreme returns in the joint distribution of returns, and returns can be standardized wtih forecasts of the time-varying moments about the distribution. In this paper, we focus on the simplest possible model for the expected return distribution so that we may focus specifically on the factor model.
+This simple parameteric model can be extended in a myriad of ways to account for the established stylized facts pertaining to the statistical characteristics of investment returns. In particular, our factor-based model can be combined with any choice for the the marginal distribution of component returns, copulas can be used to include more extreme returns in the joint distribution of returns, and returns can be standardized wtih forecasts of the time-varying moments about the distribution. In this paper, we use on the simplest possible model for the expected return distribution so that we may focus specifically on the factor model.
 
 ## Too Many Moving Parts
 
@@ -197,7 +197,7 @@ In this paper, we extract the manager, program, and monthly return data for the 
 
 # Data
 
-In this section we provide detailed information about the acquisition of the data for this paper. A brief overview of the available data is provided below. It is important to note that much of the data collected was ultimately not cleaned and used in modeling. Data in the database has not been normalized as this application is not transaction oriented and storage has been set-up for a one-time analysis.
+In this section we provide detailed information about the acquisition of the data for this paper. A brief overview of the available data is provided below. It is important to note that much of the data collected was ultimately not cleaned and used in our modeling. Data in the database has not been normalized as this application is not transaction-oriented and storage has been set up for a one-time analysis.
 
 Although return data quality appears high, the quality of data pertaining to manager and program information is much lower. This data set will likely be cleaned and used for future research projects. The entire system for collecting and storing the data is included below.
 
@@ -735,8 +735,7 @@ if (loadDatabaseTables){
 }
 ```
 
-In the above code, the connect parameters are hidden, but a reader wishing to reproduce the paper must install MySQL 
-and provide the connection parameters (i.e., dbHost, dbPort, dbUser, and dbPassword). The other connect parameters remain the same.
+In the above code, the connection parameters are hidden, but a reader wishing to reproduce the paper must install MySQL and provide the connection parameters (i.e., dbHost, dbPort, dbUser, and dbPassword). The other connection parameters remain the same.
 
 Furthermore, the output directory (outputDirectory) parameter must be set and the 'extractFromWeb','createDatabase','createDatabaseTables','loadDatabaseTables' flags must be set to TRUE.
 
@@ -813,10 +812,10 @@ We can see that `r distributionAboveThreshold[100,2]`% of the programs are 100% 
 # plot the tail of the distribution
 barplot(distributionAboveThreshold[systematicThreshold:100,2],horiz=TRUE)
 # create the table
-knitr::kable(t(distributionAboveThreshold[systematicThreshold:100,1:2]))
+knitr::kable(t(distributionAboveThreshold[systematicThreshold:100,1:2]),caption='Distribution of Programs with Significant Systematic Components')
 ```
 
-As can be seen in the above table, the vast majority of firms that report a systematic component to their strategies claim that their programs are 90%, 95%, or 100% systematic. In the modeling section of the paper we will model the relationships between 
+As can be seen in the above table, the vast majority of firms that report a systematic component to their strategies claim that their programs are 90%, 95%, or 100% systematic.
 
 Each managed futures program uses a different level of leverage. The level of allowed leverage is often a constraint set by investors. The inverse of the collected quantity, 'margin-to-equity', is the program leverage. We extract the 'margin-to-equity' as follows:
 
