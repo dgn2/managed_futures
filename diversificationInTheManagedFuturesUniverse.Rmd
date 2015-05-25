@@ -481,15 +481,15 @@ cleanProgramInfo<-function (programInfo){
     stringsAsFactors=FALSE)
   # remove the foreign characters
   programInfo <- as.data.frame(lapply(programInfo,
-    function(x) if(is.character(x)|is.factor(x)) gsub("ö","o",x) else x),
+    function(x) if(is.character(x)|is.factor(x)) gsub("????","o",x) else x),
     stringsAsFactors=FALSE)
   # remove the foreign characters
   programInfo <- as.data.frame(lapply(programInfo,
-    function(x) if(is.character(x)|is.factor(x)) gsub("Ä","A",x) else x),
+    function(x) if(is.character(x)|is.factor(x)) gsub("????","A",x) else x),
     stringsAsFactors=FALSE)
   # remove the foreign characters
   programInfo <- as.data.frame(lapply(programInfo,
-    function(x) if(is.character(x)|is.factor(x)) gsub("Ö","O",x) else x),
+    function(x) if(is.character(x)|is.factor(x)) gsub("????","O",x) else x),
     stringsAsFactors=FALSE)
   programInfo
 }
@@ -1343,7 +1343,7 @@ colnames(proportionOfVarianceTable)<-columnNames
 knitr::kable(head(proportionOfVarianceTable,10),digits=1,caption='Top 5 Factors')
 ```
 
-The first statistical factor accounts for `r round(proportionOfVarianceTable[1,2])`% of the variation of the sytems. Indeed the first factor is the most significant by far. The second factor acounts for another `r round(proportionOfVarianceTable[2,2])`% of the variation, and the third component accounts for `r round(proportionOfVarianceTable[3,2])`% more. Indeed, the first three factors together account for `r round(proportionOfVarianceTable[3,3])`% of the variation. The first 10 factors acount for `r round(proportionOfVarianceTable[1,3])`% proportion of the variation in the system. By focusing on just three factors we can understand a very significant proportion of the total variation in the managed futures universe under study.
+The first statistical factor accounts for `r round(proportionOfVarianceTable[1,2])`% of the variation of the sytems. Indeed the first factor is the most significant by far. The second factor acounts for another `r round(proportionOfVarianceTable[2,2])`% of the variation, and the third component accounts for `r round(proportionOfVarianceTable[3,2])`% more. Indeed, the first three factors together account for `r round(proportionOfVarianceTable[3,3])`% of the variation. The first 10 factors acount for `r round(proportionOfVarianceTable[10,3])`% proportion of the variation in the system. By focusing on just three factors we can understand a very significant proportion of the total variation in the managed futures universe under study.
 
 When we sort the factor loadings by the first factor we can see that the all but two (relative value) funds contribute to the first factor, with the long- and medium- term trend-following funds making the strongest contributions and the volatility selling, short-term and relative value programs having small or negative loadings. 
 
