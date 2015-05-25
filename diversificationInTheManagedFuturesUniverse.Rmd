@@ -2,7 +2,7 @@
 title: "Diversification in the Managed Futures Universe"
 author: "Derek G. Nokes, CUNY"
 date: "Friday, May 22, 2015"
-output: html_document
+output: pdf_document
 toc: yes
 ---
 
@@ -135,7 +135,7 @@ The holdig period return (HPR) for the portfolio is one plus the portfolio retur
 
 $$HPR_{P,m}=1+\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)=1+r_{P,m}$$
 
-The holding period return is the factor by which we mulitply the starting value of the portfolio to get the ending value of a portfolio, given the monthly returns and weights of each component investment.
+The holding period return is the factor by which we multiply the starting value of the portfolio to get the ending value of a portfolio, given the monthly returns and weights of each component investment.
 
 Similarly, we define the terminal wealth relative (TWR) as the factor by which we multiply the starting value of the portfolio to get the ending value of the portfolio given the return streams and weights for a sequence of months between one to $M$:
 
@@ -169,7 +169,7 @@ $\alpha_{CL}$ is the critical value at the confidence level $CL$
 
 $\sigma_{P,M}$ is the standard deviation of the portfolio returns over the time interval $m=1, \dots, M$
 
-This simple parameteric model can be extended in a myriad of ways to account for the established stylized facts pertaining to the statistical characteristics of investment returns. In particular, our factor-based model can be combined with any choice for the the marginal distribution of component returns, copulas can be used to include more extreme returns in the joint distribution of returns, and returns can be standardized wtih forecasts of the time-varying moments about the distribution. In this paper, we use on the simplest possible model for the expected return distribution so that we may focus specifically on the factor model.
+This simple parametric model can be extended in a myriad of ways to account for the established stylized facts pertaining to the statistical characteristics of investment returns. In particular, our factor-based model can be combined with any choice for the the marginal distribution of component returns, copulas can be used to include more extreme returns in the joint distribution of returns, and returns can be standardized with forecasts of the time-varying moments about the distribution. In this paper, we use on the simplest possible model for the expected return distribution so that we may focus specifically on the factor model.
 
 ## Too Many Moving Parts
 
@@ -209,7 +209,7 @@ Although return data quality appears high, the quality of data pertaining to man
 
 ## Raw Data Extraction, Transformation, and Loading (ETL)
 
-We exract the raw manager, program, and monthly return data to pipe-delimited flat files using some custom R functions made considerably simpler through the use of the 'rvest' and 'lubridate' packages.
+We extract the raw manager, program, and monthly return data to pipe-delimited flat files using some custom R functions made considerably simpler through the use of the 'rvest' and 'lubridate' packages.
 
 for each managed futures program on the Altergis website we extract the following types of information:
 
@@ -939,7 +939,7 @@ Data cleaning of the majority of the collected data pertaining to manager and pr
 
 The manager and program information collected is somewhat unstructured and visual inspection of the managed futures website reveals many reporting inconsistencies across managers. Our quick exploratory analysis confirms that data is reported somewhat inconsistently by CTAs. In particular, there appears to be very little validation of the manager and program information submitted by CTAs. As a result, this part of the collected data set requires a lot of cleaning and standardization before it can be used effectively in our modeling.
 
-In this section we provide a brief example of the types of inconsistencies in the available progam and manager data.
+In this section we provide a brief example of the types of inconsistencies in the available program and manager data.
 
 We extract the information about the geographical region of each manager as follows:
 
@@ -1087,7 +1087,7 @@ The proportion of the variance from the $k^{th}$ factor is equal to the ratio of
 To determine how many statistical factors are needed to describe the correlations between investments, many methods have been proposed. There is no widespread agreement on an optimal approach. In this paper we focus on the first factor where we are able to find a clear economic interpretation.
 
 #### Significant Statistical Factor Coefficients
-An increase in the variance associated with  a factor can be the result of increases in the correlations among only a few investment programs (which then have large factor coefficients) or an effect in which many investment programs make significant contributions to the factor. Since the two types of changes have very different implications for portfolio management, this distinction is critically important. It becomes much more difficult to reduce risk by diversifying across different investments when correlations between all investments increase. In contrast, increases in correlations within an investment type when correlations between investment types are not increaseing have a less significant impact on diversification.
+An increase in the variance associated with  a factor can be the result of increases in the correlations among only a few investment programs (which then have large factor coefficients) or an effect in which many investment programs make significant contributions to the factor. Since the two types of changes have very different implications for portfolio management, this distinction is critically important. It becomes much more difficult to reduce risk by diversifying across different investments when correlations between all investments increase. In contrast, increases in correlations within an investment type when correlations between investment types are not increasing have a less significant impact on diversification.
 
 ##### Inverse Participation Ratio (IPR)
 
@@ -1128,9 +1128,9 @@ $$PR = \frac{1}{IPR_{k}}$$
 
 The participation ratio quantifies the number of eigenvector (loading) components that participate in a factor and provides a measure of concentration.
 
-The bigger a $PR$ is, the more participants the statistical factor has, the more uniformly distributed the participation is, and the more correlations are driven by the statistical facotr.
+The bigger a $PR$ is, the more participants the statistical factor has, the more uniformly distributed the participation is, and the more correlations are driven by the statistical factor.
 
-Participation ratios facilitate the identification of statistical facotrs that represent macroeconomic scenarios, namely those with with many participants. They also help us identify factors that represent microeconomic scenarios, namely factors with few participants.
+Participation ratios facilitate the identification of statistical factors that represent macroeconomic scenarios, namely those with with many participants. They also help us identify factors that represent micro-economic scenarios, namely factors with few participants.
 
 ### Portfolio Factor Sensitivities and Coherent Scenario Analysis
 
@@ -1343,7 +1343,7 @@ colnames(proportionOfVarianceTable)<-columnNames
 knitr::kable(head(proportionOfVarianceTable,10),digits=1,caption='Top 5 Factors')
 ```
 
-The first statistical factor accounts for `r round(proportionOfVarianceTable[1,2])`% of the variation of the sytems. Indeed the first factor is the most significant by far. The second factor acounts for another `r round(proportionOfVarianceTable[2,2])`% of the variation, and the third component accounts for `r round(proportionOfVarianceTable[3,2])`% more. Indeed, the first three factors together account for `r round(proportionOfVarianceTable[3,3])`% of the variation. The first 10 factors acount for `r round(proportionOfVarianceTable[10,3])`% proportion of the variation in the system. By focusing on just three factors we can understand a very significant proportion of the total variation in the managed futures universe under study.
+The first statistical factor accounts for `r round(proportionOfVarianceTable[1,2])`% of the variation of the systems. Indeed the first factor is the most significant by far. The second factor accounts for another `r round(proportionOfVarianceTable[2,2])`% of the variation, and the third component accounts for `r round(proportionOfVarianceTable[3,2])`% more. Indeed, the first three factors together account for `r round(proportionOfVarianceTable[3,3])`% of the variation. The first 10 factors account for `r round(proportionOfVarianceTable[10,3])`% proportion of the variation in the system. By focusing on just three factors we can understand a very significant proportion of the total variation in the managed futures universe under study.
 
 When we sort the factor loadings by the first factor we can see that the all but two (relative value) funds contribute to the first factor, with the long- and medium- term trend-following funds making the strongest contributions and the volatility selling, short-term and relative value programs having small or negative loadings. 
 
@@ -1386,7 +1386,7 @@ ggplot(participationRatioDf, aes(x = k, y = participationRatio)) +
   scale_colour_economist() + coord_flip()
 ```
 
-Using the participation ratio defined in the previous section, we see that `r round(participationRatio[1])` components make significant contributions to the first factor. This is in strong contrast to the other factors where the number of components making significant contribtions is between `r participationRatioRange[1]` and `r participationRatioRange[2]`. 
+Using the participation ratio defined in the previous section, we see that `r round(participationRatio[1])` components make significant contributions to the first factor. This is in strong contrast to the other factors where the number of components making significant contributions is between `r participationRatioRange[1]` and `r participationRatioRange[2]`. 
 
 Although more examination of the factors would be required to get an deeper intuitive sense of the *meaning* of the factors, we proceed to illustrating how our simple statistical factor model can be used to create sensitivities.
 
