@@ -6,87 +6,13 @@ output: pdf_document
 toc: yes
 ---
 
-```{r,echo=FALSE,error=FALSE,warning=FALSE,message=FALSE}
-options(rpubs.upload.method = "internal")
 
-displayRCode_NonPublic<-FALSE
-displayRCode_Data<-TRUE
-displayRCode_Theory<-FALSE
-displayRCode_Modeling<-FALSE
 
-displayRCode_Table<-FALSE
-displayRCode<-FALSE
-displayRErrors<-FALSE
-displayRWarnings<-FALSE
-displayRMessages<-FALSE
 
-# load the packages
-library('rvest')
-library('lubridate')
-library('RMySQL')
-library('quantmod')
-library("reshape2")
-library("ggplot2")
-library('ggthemes')
-library('RColorBrewer')
-library('FactoMineR')
-library('hash')
-```
-
-```{r,echo=FALSE,error=FALSE,warning=FALSE,message=FALSE}
-# Multiple plot function
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  require(grid)
-
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-
-  numPlots = length(plots)
-
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                    ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-
- if (numPlots==1) {
-    print(plots[[1]])
-
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
-```
 ```
 
 \pagebreak
-```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# all of the code for the paper goes here
-nCtaPrograms<-200
-```
+
 
 # Abstract
 
@@ -152,7 +78,8 @@ $$\sigma_{P,M}=\sqrt{Var\left( {W_{m}}^{T} R_{m} \right)}=\sqrt{{W_{m}}^T\Sigma 
 
 Where $W_{m}$ is a vector of portfolio component weights for month $m$, $T$ denotes the transpose operator, $R_{m}$ is a vector of the month $m$ component returns, and $\Sigma$ is the return covariance matrix.
 
-```{r}
+
+```r
 portfolioVolatility <- function (W,COV){
   portfolioStandardDeviation = sqrt( t(W)%*%COV%*%W )  
 }
@@ -173,23 +100,13 @@ This simple parameteric model can be extended in a myriad of ways to account for
 
 ## Too Many Moving Parts
 
-```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-nParametersInC <- function (I){
-  #
-  nParameters<-(I*(I+1))/2
-  nParameters
-}
-```
+
 
 The number of independent parameters $P$ in a covariance matrix grows with the number of investments $I$ according to the following function:
 
 $$P=\frac{I\left(I+1\right)}{2}$$
 
-```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# create a graph to illustrate number of model parameters by number of instruments
-plot(nParametersInC(1:100),type='l',xlab='Number of Investments',ylab='Number of Model Parameters')
-
-```
+![](diversificationInTheManagedFuturesUniverse_files/figure-latex/unnamed-chunk-6-1.pdf) 
 
 The number of independent parameters to be estimated in the covariance matrix grows with the square of the number of investments, while the number of data points available to estimate a covariance matrix grows only linearly with the number of investments. In other words, the larger the portfolio, the more historical data we typically need to estimate the covariance matrix reliably. This is particularly problematic when our interest is in the temporal evolution of the relationships between investments in the portfolio.
 
@@ -209,7 +126,8 @@ for each managed futures program on the Altergis website we extract the followin
 
 -- CTA Name
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 extractCtaName<-function (programHtmlSession){  
   # extract the CTA name
   ctaName <- programHtmlSession %>% html() %>% 
@@ -221,7 +139,8 @@ extractCtaName<-function (programHtmlSession){
 
 -- Program Name
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 extractProgramName<-function (programHtmlSession){  
   # extract the program name
   programName <- programHtmlSession %>% html() %>% 
@@ -233,7 +152,8 @@ extractProgramName<-function (programHtmlSession){
 
 -- Monthly Returns
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 extractMonthlyReturns<-function (programHtmlSession,programId){  
   # extract CTA Name
   ctaName<-extractCtaName(programHtmlSession)
@@ -303,7 +223,8 @@ extractMonthlyReturns<-function (programHtmlSession,programId){
 
 -- Manager Address
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 extractAddress<-function (programHtmlSession,ctaName,programName){  
   # extract the address
   address<-html_table(html_nodes(programHtmlSession, 
@@ -325,7 +246,8 @@ extractAddress<-function (programHtmlSession,ctaName,programName){
 
 -- Investment Methodology
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 extractInvestmentMethodology<-function (programHtmlSession,ctaName,programName){ 
   # extract the investment methodlogy
   investmentMethodology<-html_table(html_nodes(programHtmlSession,
@@ -340,7 +262,8 @@ extractInvestmentMethodology<-function (programHtmlSession,ctaName,programName){
 
 -- Instruments Traded
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 extractInstruments<-function (programHtmlSession,ctaName,programName){
   # extract the instruments
   instruments<-html_table(html_nodes(programHtmlSession, 
@@ -353,7 +276,8 @@ extractInstruments<-function (programHtmlSession,ctaName,programName){
 
 -- Sectors of Instruments Traded
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # extract program data
 extractSectors<-function (programHtmlSession,ctaName,programName){  
   # extract sector information
@@ -368,7 +292,8 @@ extractSectors<-function (programHtmlSession,ctaName,programName){
 
 -- Geographical Focus of Instruments Traded
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 extractGeographicalFocus<-function (programHtmlSession){
   # extract the geographical focus
   geographicalFocus<-html_table(html_nodes(programHtmlSession, 
@@ -382,7 +307,8 @@ extractGeographicalFocus<-function (programHtmlSession){
 
 -- Holding Periods (Short/Medium/Long)
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 extractHoldingPeriod<-function (programHtmlSession){  
   # extract the holding period
   holdingPeriod<-html_table(html_nodes(programHtmlSession,
@@ -395,8 +321,8 @@ extractHoldingPeriod<-function (programHtmlSession){
 
 -- Investment Terms and Information
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 
+```r
 extractInvestmentTermsAndInfo<-function (programHtmlSession){  
   # extract the investment terms and info
   investmentTermsAndInfo<-html_table(html_nodes(programHtmlSession, 
@@ -406,11 +332,12 @@ extractInvestmentTermsAndInfo<-function (programHtmlSession){
   investmentTermsAndInfo['columnType']<-'investmentTermsAndInfo'
   investmentTermsAndInfo
 }
-````
+```
 
 We extract manager, program, and month return data for a single CTA program with a function that calls functions for each sub-type.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # extract program data
 extractProgramInfo<-function (programHtmlSession,programId){  
   # create the program session
@@ -491,7 +418,8 @@ cleanProgramInfo<-function (programInfo){
 
 We write the monthly return flat file with one function.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # extract and write CTA monthly returns
 extractAndWriteMonthlyReturns<-function (outputFileHandle1,
   programHtmlSession,programId){
@@ -508,7 +436,8 @@ extractAndWriteMonthlyReturns<-function (outputFileHandle1,
 
 We write the manager and program information with another function.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # extract and write CTA program info
 extractAndWriteProgramInfo<-function (outputFileHandle2,
   programHtmlSession,programId){
@@ -527,7 +456,8 @@ extractAndWriteProgramInfo<-function (outputFileHandle2,
 
 Finally, one single function is used to extract all of the data sub-types and write the data into two flat files to be loaded into the project database.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # define the function to extract the Altegris data
 extractAltegrisData<-function (outputDirectory){
   # set the URL string 
@@ -581,7 +511,8 @@ extractAltegrisData<-function (outputDirectory){
 
 We create a database in MySQL to store the raw, unnormalized data.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # define the function to create the altegris database
 createAltegrisDatabase <- function(dbHandle){
   # create the 'altegris' database
@@ -605,7 +536,8 @@ dropAltegrisDatabase <- function(dbHandle){
 
 We create two database tables, one to store the manager and program data, and the other to store the monthly return data.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # define the function to create the CTA program info table
 createCtaProgramInfoTable <- function (dbHandle){
   # create the SQL statement to create the table
@@ -640,7 +572,8 @@ createCtaMonthlyReturnTable <- function (dbHandle){
 
 The vast majority of the data collected - particularly that associated with the manager and program information - remains in a 'messy' format and will likely be cleaned for a future research project.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # define the function to create the CTA program info table
 loadCtaProgramInfoTable <- function (dbHandle,outputDirectory,
                                      fileName){
@@ -669,17 +602,10 @@ loadCtaMonthlyReturnTable <- function(dbHandle,outputDirectory,
 
 We call the functions to scrape the Altergis website, create the database, create the database tables, and load the tables.
 
-```{r,echo=displayRCode_NonPublic,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# connection parameters
-dbDriver<-dbDriver("MySQL")
-dbHost<-'localhost'
-dbPort<-3306
-dbUser<-'root'
-dbPassword<-'TGDNrx78'
-dbName<-'altegris'
-```
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+
+```r
 # data extraction, database/table creation, and database loading
 outputDirectory<-'C:/Users/DerekG/Documents/github/managed_futures/'
 extractFromWeb<-FALSE
@@ -744,21 +670,12 @@ Furthermore, the output directory (outputDirectory) parameter must be set and th
 
 In this section we explore a small sub-set of the collected data.
 
-```{r,echo=displayRCode_NonPublic,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# load the library
-library(RMySQL)
-# connection parameters
-dbDriver<-dbDriver("MySQL")
-dbHost<-'localhost'
-dbPort<-3306
-dbUser<-'root'
-dbPassword<-'TGDNrx78'
-dbName<-'altegris'
-```
+
 
 First we connect to the altergris MySQL database.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # connect to the 'altegris' database
 dbHandle<-dbConnect(dbDriver,dbname = dbName,
   host=dbHost,port=dbPort,user=dbUser, 
@@ -767,7 +684,8 @@ dbHandle<-dbConnect(dbDriver,dbname = dbName,
 
 We extract the set of managed futures programs classified as 'Systematic'.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # extract the systematic programs
 query<-paste0("SELECT * FROM altegris.cta_program_info ",
   "WHERE column_type = 'investmentMethodology' AND ",
@@ -779,7 +697,8 @@ ctaSystematic<-dbGetQuery(dbHandle,query)
 
 There are three types of responses by managers. Some managers report in a binary way (i.e., either they are or are not 'Systematic'), while other managers report the approximate proportion of their operations that are 'Systematic'. To make the data consistent, 'No' responses are converted to 0% and 'Yes' responses are converted to 100%.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # assume that 'No' indicates no systematic element
 ctaSystematic[ctaSystematic[,3]=='No',3]<-0
 # assume that 'Yes' indicates 100% systematic element
@@ -807,20 +726,32 @@ colnames(distributionAboveThreshold)<-c('% systematic',
   '% of CTAs','Cumulative % of CTAs')
 ```
 
-We can see that `r distributionAboveThreshold[100,2]`% of the programs are 100% systematic, while `r sum(distributionAboveThreshold[systematicThreshold:100,2])`% claim that the proportion of their operation that is systematic is above `r systematicThreshold`%.
+We can see that 63.6% of the programs are 100% systematic, while 82.6% claim that the proportion of their operation that is systematic is above 90%.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # plot the tail of the distribution
 barplot(distributionAboveThreshold[systematicThreshold:100,2],horiz=TRUE)
+```
+
+![](diversificationInTheManagedFuturesUniverse_files/figure-latex/unnamed-chunk-30-1.pdf) 
+
+```r
 # create the table
 knitr::kable(t(distributionAboveThreshold[systematicThreshold:100,1:2]))
 ```
+
+                  90   91   92   93   94     95   96     97     98     99     100
+-------------  -----  ---  ---  ---  ---  -----  ---  -----  -----  -----  ------
+% systematic    90.0   91   92   93   94   95.0   96   97.0   98.0   99.0   100.0
+% of CTAs        4.9    0    0    0    0    7.6    0    1.6    1.6    3.3    63.6
 
 As can be seen in the above table, the vast majority of firms that report a systematic component to their strategies claim that their programs are 90%, 95%, or 100% systematic. In the modeling section of the paper we will model the relationships between 
 
 Each managed futures program uses a different level of leverage. The level of allowed leverage is often a constraint set by investors. The inverse of the collected quantity, 'margin-to-equity', is the program leverage. We extract the 'margin-to-equity' as follows:
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # extract the margin to equity data
 query<-paste0("SELECT * FROM altegris.cta_program_info ",
   "WHERE column_type = 'investmentTermsAndInfo' AND ",
@@ -832,7 +763,8 @@ ctaMarginToEquity<-dbGetQuery(dbHandle,query)
 
 We convert the 'margin-to-equity' to leverage as follows:
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # convert the margin-to-equity to numeric
 marginToEquity<-(as.numeric(ctaMarginToEquity[,3]))
 # convert the 'margin-to-equity' to leverage
@@ -849,9 +781,12 @@ leverageFrequency<-tabulate(leverage)
 barplot(leverageFrequency)
 ```
 
+![](diversificationInTheManagedFuturesUniverse_files/figure-latex/unnamed-chunk-32-1.pdf) 
+
 Finally, we extract the returns for a single managed futures program as and create a summary of the performance as follows:
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 fetchMonthlyReturnsForCtaByProgramId <- function (dbHandle,programId){
   query<-paste0("SELECT eom_date,monthly_return FROM cta_monthly_returns WHERE program_id=",
     programId)
@@ -864,7 +799,8 @@ fetchMonthlyReturnsForCtaByProgramId <- function (dbHandle,programId){
 ```
 
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 minDate<-"2005-01-01"
 query<-paste0("SELECT DISTINCT cta_name,program_name,program_id,MIN(eom_date) AS minDate ",
   "FROM altegris.cta_monthly_returns WHERE eom_date<'",
@@ -881,9 +817,10 @@ ctaPrograms[,1]<-gsub('*PROP*','',ctaPrograms[,1])
 ctaPrograms[,1]<-gsub('*Program*','',ctaPrograms[,1])
 ```
 
-We can iterate over each program with historical data available prior to `r minDate` and extract the return data, adding each CTA program return stream to the group.
+We can iterate over each program with historical data available prior to 2005-01-01 and extract the return data, adding each CTA program return stream to the group.
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # create the xts object to hold the group data
 groupData <- xts()
 
@@ -909,15 +846,23 @@ for (programIndex in 1:dim(programIds)[1]){
 groupDataDimension<-dim(groupData)
 ```
 
-We extract `r groupDataDimension[1]` months of CTA program return data for `r groupDataDimension[2]` distinct managed futures programs.
+We extract 112 months of CTA program return data for 76 distinct managed futures programs.
 
 Our data includes most of the managers with the most impressive track records.
 
-```{r,echo=displayRCode_Table,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-oldCtaIndex<-sort.int(ctaList[,4],index.return=TRUE)
-ctaListingTable<-ctaList[oldCtaIndex$ix,c(1,2,4)]
-knitr::kable(head(ctaListingTable,10))
-```
+
+     cta_name                         program_name                                         minDate    
+---  -------------------------------  ---------------------------------------------------  -----------
+8    Campbell & Company, LP           Campbell Managed Futures                             1983-04-30 
+1    Abraham Trading Company          Abraham Diversified Program                          1990-01-31 
+9    Chesapeake Capital Corporation   Diversified Program *QEP*                            1990-01-31 
+22   DUNN Capital Management, Inc.    World Monetary and Agriculture (WMA) Program *QEP*   1990-01-31 
+26   EMC Capital Advisors LLC         Classic Program *QEP*                                1990-01-31 
+34   Hawksbill Capital Management     Global Diversified Program *QEP*                     1990-01-31 
+43   Mark J. Walsh & Company          Standard Program                                     1990-01-31 
+44   Michael J. Frischmeyer, CTA      Michael J. Frischmeyer, CTA *CLSD*                   1990-01-31 
+45   Millburn Corporation             Diversified Program                                  1990-01-31 
+57   Rabar Market Research, Inc.      Diversified Program *QEP*                            1990-01-31 
 
 ## Data Cleaning
 
@@ -929,7 +874,8 @@ In this section we provide a brief example of the types of inconsistencies in th
 
 We extract the information about the geographical region of each manager as follows:
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # create the query
 query<-paste0("SELECT DISTINCT column_value,COUNT(column_value) ",
   "FROM altegris.cta_program_info WHERE column_type = 'address' ",
@@ -942,11 +888,42 @@ colnames(ctaCountry)<-c('Country','# of Programs')
 knitr::kable(ctaCountry)
 ```
 
+
+
+Country            # of Programs
+----------------  --------------
+                               4
+Austria                        2
+Bahamas                        1
+Canada                         6
+Channel Islands                1
+Cyprus                         1
+Finland                        4
+France                         2
+Germany                        1
+Hong Kong                      1
+Israel                         1
+Korea                          1
+Liechtenstein                  1
+Macedonia                      1
+Netherlands                    2
+Singapore                      1
+Spain                          2
+St. Croix USVI                 1
+Switzerland                    6
+UK                             1
+United Kingdom                16
+United Kingdon                 3
+United States                 35
+US                             1
+USA                          111
+
 Spelling errors and single countries coded with multiple names (i.e., United Kingdom, United Kingdon, or UK for instance) are clear.
 
 We can clean up the data as follows:
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # replace empty with Unreported
 ctaCountry[ctaCountry[,1]=='',1]<-'Unreported'
 # reclassify US Virgin Islands as United States
@@ -977,12 +954,40 @@ sortIndex<-sort.int(cleanTable[,2],index.return=TRUE,decreasing=TRUE)
 knitr::kable(cleanTable[sortIndex$ix,2:3])
 ```
 
-Now we can see that `r cleanTable[cleanTable[,1]=='United States',3]`% of the reporting managed futures programs are operated out of the united states and `r cleanTable[cleanTable[,1]=='United Kingdom',3]`% are operated out of the United Kingdom. The vast majority of programs are operated out of these two regions (`r cleanTable[cleanTable[,1]=='United States',3]+cleanTable[cleanTable[,1]=='United Kingdom',3]`%). It is also notable that `r cleanTable[cleanTable[,1]=='Unreported',3]`% of managers do not provide information about their geographical location.
+                   # of Programs   % of Programs
+----------------  --------------  --------------
+United States                148           71.84
+United Kingdom                20            9.71
+Canada                         6            2.91
+Switzerland                    6            2.91
+Finland                        4            1.94
+Unreported                     4            1.94
+Austria                        2            0.97
+France                         2            0.97
+Netherlands                    2            0.97
+Spain                          2            0.97
+Bahamas                        1            0.49
+Channel Islands                1            0.49
+Cyprus                         1            0.49
+Germany                        1            0.49
+Hong Kong                      1            0.49
+Israel                         1            0.49
+Korea                          1            0.49
+Liechtenstein                  1            0.49
+Macedonia                      1            0.49
+Singapore                      1            0.49
+
+Now we can see that 71.84% of the reporting managed futures programs are operated out of the united states and 9.71% are operated out of the United Kingdom. The vast majority of programs are operated out of these two regions (81.55%). It is also notable that 1.94% of managers do not provide information about their geographical location.
 
 
-```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+
+```r
 # disconnect from the 'altegris' database
 dbDisconnect(dbHandle)
+```
+
+```
+## [1] TRUE
 ```
 
 \pagebreak
@@ -1044,10 +1049,7 @@ If the sign of every coefficient in a statistical factor $f_{k}$ is reversed, ne
 
 #### Proportion of Variance
 
-```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# find the number of significant principal components (PCs)
-nSignificantPCs<-5
-```
+
 
 The covariance matrix $\Sigma_{F}$ for the statistical factor matrix $F$ can be written as:
 
@@ -1078,24 +1080,7 @@ An increase in the variance associated with  a factor can be the result of incre
 
 ##### Inverse Participation Ratio (IPR)
 
-```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# define the inverse participation ratio (IPR)
-inverseParticipationRatio <- function (k,omega){
-  # find the IPR
-  IPR<-sum(omega[,k]^4)
-  # return the IPR
-  IPR
-}
-# define the participation ratio (PR)
-PR<- function (k,omega){
-  # find the IPR
-  IPR<-inverseParticipationRatio(k,omega)
-  # take the inverse of the IPR
-  PR<-1/IPR
-  # return the PR
-  PR
-}
-```
+
 
 The inverse participation ratio $I_{k}$ of the $k^{th}$ factor $\omega_{k}$ is defined as:
 
@@ -1125,7 +1110,8 @@ We can use our factor model to determine the impact of an increase in the propor
 
 The following three functions are used to implement the sensitivity analysis in the application section of the paper.
 
-```{r,error=FALSE,warning=FALSE}
+
+```r
 perturbCorrelation<-function (shockFactor,factorIndex,eigenvalues,eigenvectors){
   # create the hash to store the results
   scenario<-hash()
@@ -1156,7 +1142,8 @@ perturbCorrelation<-function (shockFactor,factorIndex,eigenvalues,eigenvectors){
 ```
 
 
-```{r}
+
+```r
 perturbFactorCorrelation <- function (factorIndex,eigenvalues,eigenvectors){
   # create the hash
   scenarios<-hash()
@@ -1178,7 +1165,8 @@ perturbFactorCorrelation <- function (factorIndex,eigenvalues,eigenvectors){
 ```
 
 
-```{r}
+
+```r
 factorBasedCorrelationSensitivity<-function (numberOfFactors,C){
   # find the number of rows and columns
   dimension<-dim(C)
@@ -1215,175 +1203,98 @@ factorBasedCorrelationSensitivity<-function (numberOfFactors,C){
 
 In this section we apply the theory outlined in the above section. In particular, we build a simple factor model of managed futures program returns and use it to create sensitivities that map the proportion of total variance in the investment universe to portfolio variation. This sensitivity allows us to monitor the time-varying proportion of variance explained by the first few statistical factors and instantly convert these measures of market state into portfolio variability. This is particularly useful during times of crisis when the importance of the first few factors increase significantly.
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# create the terminal wealth relative (TWR) data frame
-df<-data.frame(date=index(groupData),apply(1+coredata(groupData),2,cumprod))
-# convert the 'wide' form data to 'long' form 
-longDf<-melt(df,id="date")
-```
+
 
 
 ### Data Preprocessing
 
 Prior to any modeling, we standardize the managed futures program returns.
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# standardize returns
-standardize<-function(x) (x - mean(x,na.rm=TRUE)) / sd(x,na.rm=TRUE)
-# unstandardize returns
-unstandardize<-function(scaledX,meanX,sdX) ((scaledX * as.vector(sdX)) + as.vector(meanX))
-#
-unstandardizePaths <- function (scaledX,meanX,sdX){
-  # get column labels
-  columnNames<-colnames(scaledX)
-  # get row labels
-  rowNames<-rownames(scaledX)
-  # find the rows and columns of the input matrix  
-  dimension<-dim(scaledX)
-  # create matrix to store unstandardized
-  unstandardizedReturns<-matrix(0,dimension[1],dimension[2])
-  for (pathIndex in 1:dimension[2]){
-    # reverse standardization
-    unstandardizedReturns[,pathIndex]<-unstandardize(scaledX[,pathIndex],
-      meanX[pathIndex],sdX[pathIndex])
-  }
-  # add column labels
-  colnames(unstandardizedReturns)<-columnNames
-  # add row labels
-  rownames(unstandardizedReturns)<-rowNames
-  # return standardized paths
-  unstandardizedReturns
-}
-```
 
 
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# find the mean return
-componentReturn<-apply(groupData,2, na.rm = TRUE,mean)
-# find the variance
-componentVariance<-apply(groupData,2, na.rm = TRUE,var)
-# find the standard deviation
-componentVolatility<-apply(groupData,2, na.rm = TRUE,sd)
-# standardize the returns
-standardizedReturns<-apply(groupData,2,standardize)
-```
+
+
 
 We compute the correlation
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# compute the correlation
-C <- cor(standardizedReturns,use="na.or.complete")
-```
+
 
 ### Statistical Factor Analysis
 
 We now decompose the correlation matrix into statistical factors.
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# compute the eigendecomposition
-decomposition=eigen(C)
-eigenvalues=decomposition$values
-eigenvectors=decomposition$vectors
 
-proportionOfVariance=eigenvalues/length(eigenvalues)
-explainedVariance=cumsum(proportionOfVariance)
-```
 
 The top 5 factors explain a very significant proportion of the total variance.
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-makeFactorName<-function (x){ paste0('Factor ',x)}
-x<-1:groupDataDimension[2]
-factorNames<-makeFactorName(x)
-proportionOfVarianceTable<-cbind(data.frame(factorNames),proportionOfVariance*100,
-  explainedVariance*100)
-columnNames<-c('Factors','Proportion of Variance','Cumulative Proportion of Variance')
-colnames(proportionOfVarianceTable)<-columnNames
-knitr::kable(head(proportionOfVarianceTable,10),digits=1)
-```
 
-The first statistical factor accounts for `r round(proportionOfVarianceTable[1,2])`% of the variation of the sytems. Indeed the first factor is the most significant by far. The second factor acounts for another `r round(proportionOfVarianceTable[2,2])`% of the variation, and the third component accounts for `r round(proportionOfVarianceTable[3,2])`% more. Indeed, the first three factors together account for `r round(proportionOfVarianceTable[3,3])`% of the variation. The first 10 factors acount for `r round(proportionOfVarianceTable[1,3])`% proportion of the variation in the system. By focusing on just three factors we can understand a very significant proportion of the total variation in the managed futures universe under study.
+Factors      Proportion of Variance   Cumulative Proportion of Variance
+----------  -----------------------  ----------------------------------
+Factor 1                       36.8                                36.8
+Factor 2                        8.8                                45.7
+Factor 3                        6.5                                52.1
+Factor 4                        4.0                                56.1
+Factor 5                        3.6                                59.8
+Factor 6                        3.0                                62.8
+Factor 7                        2.5                                65.3
+Factor 8                        2.2                                67.6
+Factor 9                        2.2                                69.8
+Factor 10                       2.0                                71.8
+
+The first statistical factor accounts for 37% of the variation of the sytems. Indeed the first factor is the most significant by far. The second factor acounts for another 9% of the variation, and the third component accounts for 6% more. Indeed, the first three factors together account for 52% of the variation. The first 10 factors acount for 37% proportion of the variation in the system. By focusing on just three factors we can understand a very significant proportion of the total variation in the managed futures universe under study.
 
 When we sort the factor loadings by the first factor we can see that the all but two (relative value) funds contribute to the first factor, with the long- and medium- term trend-following funds making the strongest contributions and the volatility selling, short-term and relative value programs having small or negative loadings. 
 
 The ten smallest factor loadings are:
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# bind the CTA names, program names, and eigenvectors (factor loadings)
-factorTable<-cbind(ctaNames,ctaPrograms,eigenvectors)
-colnames(factorTable)<-c('Manager Name','Program Name',factorNames)
-# create the sort index for factor 1
-factor_1_Index<-sort.int(factorTable[,3],index.return=TRUE)
-# create the table to show the ten smallest factor loadings
-knitr::kable(head(factorTable[factor_1_Index$ix,c(1,2,3)],10),digits=4,
-  caption='Smallest Factor 1 Loadings')
-```
+
+Table: Smallest Factor 1 Loadings
+
+     Manager Name                              Program Name                                Factor 1
+---  ----------------------------------------  -----------------------------------------  ---------
+18   Doherty Advisors, LLC                     Relative Value Volatility 2X                 -0.0434
+19   Doherty Advisors, LLC                     Relative Value Volatility 1X                 -0.0410
+74   Warrington Asset Management Corp.         Strategic Fund                               -0.0228
+52   Paskewitz Asset Management, LLC           Contrarian 3X Stock Index                    -0.0209
+50   Omni Trading, LLC                         S&P 500 Option Overwriting                   -0.0039
+54   Quantitative Investment Management, LLC   Global                                        0.0023
+42   Kinkopf Capital Management, LLC           Kinkopf S&P                                   0.0034
+68   Systematic Alpha Management LLC           Systematic Alpha Futures                      0.0044
+2    AgTech Trading Company                    Ag Trading                                    0.0052
+32   Goldman Management, Inc.                  Goldman Management Stock Index Futures        0.0079
 
 The ten largest factor loadings are:
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# create the table to show the ten largest factor loadings
-knitr::kable(tail(factorTable[factor_1_Index$ix,c(1,2,3)],10),digits=4,
-  caption='Largest Factor 1 Loadings')
-```
+
+Table: Largest Factor 1 Loadings
+
+     Manager Name                                     Program Name                              Factor 1
+---  -----------------------------------------------  ---------------------------------------  ---------
+75   Welton Investment Partners LLC                   Global Directional Portfolio                0.1514
+41   Kelly Angle Inc.                                 Genesis                                     0.1516
+66   SMN Investment Services GmbH                     Diversified Futures                         0.1522
+28   Estlander & Partners Ltd.                        Alpha Trend                                 0.1522
+22   DUNN Capital Management, Inc.                    World Monetary and Agriculture (WMA)        0.1525
+1    Abraham Trading Company                          Abraham Diversified                         0.1530
+49   Mulvaney Capital Management Ltd                  Global Diversified                          0.1550
+38   ISAM - International Standard Asset Management   Systematic                                  0.1563
+56   Quest Partners LLC                               AlphaQuest Original  (AQO)                  0.1586
+26   EMC Capital Advisors LLC                         Classic                                     0.1603
 
 The first factor can be thus thought of as a 'long directional volatility' factor.
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# create the participation ratio for all statistical factors
-participationRatio<-NULL
-for (k in 1:groupDataDimension[2]){ 
-  participationRatio[k]<-PR(k,eigenvectors) 
-  }
-participationRatioRange<-round(range(participationRatio[2:groupDataDimension[2]]))
-barplot(participationRatio)
+![](diversificationInTheManagedFuturesUniverse_files/figure-latex/unnamed-chunk-53-1.pdf) 
 
-```
-
-Using the participation ratio defined in the previous section, we see that `r round(participationRatio[1])` components make significant contributions to the first factor. This is in strong contrast to the other factors where the number of components making significant contribtions is between `r participationRatioRange[1]` and `r participationRatioRange[2]`. 
+Using the participation ratio defined in the previous section, we see that 52 components make significant contributions to the first factor. This is in strong contrast to the other factors where the number of components making significant contribtions is between 2 and 34. 
 
 Although more examination of the factors would be required to get an deeper intuitive sense of the factors, we proceed to illustrating how our simple statistical factor model can be used to create sensitivities linking
 
 #### Determining the Impact of Factors on Portfolio Variability
 
-We can perturb the importance of the first factor up and down and use our equation for portfolio standard deviation to determine the impact of on a portfolio with equal allocations to our `r groupDataDimension[2]` managed futures programs.
+We can perturb the importance of the first factor up and down and use our equation for portfolio standard deviation to determine the impact of on a portfolio with equal allocations to our 76 managed futures programs.
 
-```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-numberOfFactors<-1
-numberOfScenarios<-25
-scenarioByFactor<-factorBasedCorrelationSensitivity(numberOfFactors,C)
-dimension<-dim(C)
-I<-dimension[1]
-W<-rep(1,I)/I
-
-correlationScenarios<-matrix(0,numberOfScenarios,dimension[1]*dimension[2])
-proportionOfVarianceByFactor<-hash()
-correlationScenariosByFactor<-hash()
-varianceScenarios<-matrix(0,numberOfScenarios,dimension)
-portfolioV<-matrix(0,numberOfScenarios,numberOfFactors)
-for (factorIndex in 1:numberOfFactors){
-  for (scenarioIndex in 1:numberOfScenarios){
-    #
-    v<-eval(parse(text=(as.symbol(paste0('scenarioByFactor$factor_',factorIndex,
-      '$scenario_',scenarioIndex,'$proportionOfVariance')))))
-    varianceScenarios[scenarioIndex,]<-v
-    C<-eval(parse(text=(as.symbol(paste0('scenarioByFactor$factor_',factorIndex,
-      '$scenario_',scenarioIndex,'$correlation')))))
-    # 
-    portfolioV[scenarioIndex,factorIndex]<-portfolioVolatility(W,C)
-    
-    #correlationScenarios[scenarioIndex,]<-matrix(C,1,dimension[1]*dimension[2])
-  }
-  #proportionOfVarianceByFactor[paste0('factor_',factorIndex)]<-vv
-  #correlationScenariosByFactor[paste0('factor_',factorIndex)]<-correlationScenarios
-}
-
-plot(varianceScenarios[,1]*100,portfolioV[,1]*100,
-  xlab='Proportion of Total Variance - 1st Factor (%)',
-  ylab='Portfolio Variance (%)',
-  main='Factor Sensitivity: Portfolio Variance & the Importance of the First Factor')
-```
+![](diversificationInTheManagedFuturesUniverse_files/figure-latex/unnamed-chunk-54-1.pdf) 
 
 As the proportion of the portfolio variance explained by the first factor increases, the portfolio variance increases. Using this sensitivity measure, we can track the current proportion of variance explained by the first factor and instantly know the impact on the variation of portfolio returns.
 
@@ -1464,62 +1375,32 @@ The amount to recover from a loss increases geometrically with the magnitude of 
 $$G = \left(\frac{1}{1-L}\right)-1$$
 
 
-```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-rRequiredToOvercomeDD <- function (DD){
-  #
-  r<-(1/(1-DD))-1
-  r
-}
-# define the range of drawdowns
-DD<-seq(from=0.01,to=0.9,by=0.01)
-# compute the gain required to recover from a drawdown
-requiredGain<-rRequiredToOvercomeDD(DD)*100
+![](diversificationInTheManagedFuturesUniverse_files/figure-latex/unnamed-chunk-55-1.pdf) 
 
-timeToHitGoal<-function(goalTWR,G){
-  # compute the 
-  tToGoalTWR<-log(goalTWR)/log(G)
-  tToGoalTWR
-}
-#
-goalTWR<-requiredGain/100
-
-# define DD scenario
-scenarioDD<-c(5,10,15,20,30,40,50,60,70)
-# create geometric growth scenarios
-G<-c(1.025,1.05,1.1,1.15,1.20,1.30)^(1/12)
-eR<-(((G)^12)-1)*100
-goalTWR<-1+(requiredGain/100)
+        2.5       5      10     15     20     30
+---  ------  ------  ------  -----  -----  -----
+5      2.08    1.05    0.54   0.37   0.28   0.20
+10     4.27    2.16    1.11   0.75   0.58   0.40
+15     6.58    3.33    1.71   1.16   0.89   0.62
+20     9.04    4.57    2.34   1.60   1.22   0.85
+30    14.44    7.31    3.74   2.55   1.96   1.36
+40    20.69   10.47    5.36   3.65   2.80   1.95
+50    28.07   14.21    7.27   4.96   3.80   2.64
+60    37.11   18.78    9.61   6.56   5.03   3.49
+70    48.76   24.68   12.63   8.61   6.60   4.59
 
 
 
-expectedTimeToRecoverInMonths<-NULL
-for (g in G){
-  #
-  nYears<-timeToHitGoal(goalTWR[scenarioDD],g)/12
-  expectedTimeToRecoverInMonths<-cbind(expectedTimeToRecoverInMonths,nYears)
-}
-colnames(expectedTimeToRecoverInMonths)<-round(eR,2)
-rownames(expectedTimeToRecoverInMonths)<-scenarioDD
-# create the graph
-contour(x=scenarioDD,y=eR,z=expectedTimeToRecoverInMonths,ylab='Annual Return (%)',xlab='Drawdown (%)',main='Time to Recover in Years')
-knitr::kable(expectedTimeToRecoverInMonths,digits=2)
-```
+![](diversificationInTheManagedFuturesUniverse_files/figure-latex/unnamed-chunk-56-1.pdf) 
 
+A loss of 20% requires a gain of 25% to recoup the loss. 
 
+A loss of 30% requires a gain of 43% to recoup the loss. 
 
-```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# create a graph to illustrate required gain to recoup a loss
-plot(requiredGain,-DD*100,type='l',xlab='Gain Required to Recoup Loss (%)',ylab='Drawdown (%)')
-```
+A loss of 40% requires a gain of 67% to recoup the loss. 
 
-A loss of `r DD[20]*100`% requires a gain of `r round(requiredGain[20])`% to recoup the loss. 
+A loss of 50% requires a gain of 100% to recoup the loss. 
 
-A loss of `r DD[30]*100`% requires a gain of `r round(requiredGain[30])`% to recoup the loss. 
+A loss of 60% requires a gain of 150% to recoup the loss. 
 
-A loss of `r DD[40]*100`% requires a gain of `r round(requiredGain[40])`% to recoup the loss. 
-
-A loss of `r DD[50]*100`% requires a gain of `r round(requiredGain[50])`% to recoup the loss. 
-
-A loss of `r DD[60]*100`% requires a gain of `r round(requiredGain[60])`% to recoup the loss. 
-
-A loss of `r DD[70]*100`% requires a gain of `r round(requiredGain[70])`% to recoup the loss. 
+A loss of 70% requires a gain of 233% to recoup the loss. 
