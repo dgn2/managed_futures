@@ -926,7 +926,7 @@ knitr::kable(head(ctaListingTable,10),caption=paste0('Sample of 10 of the ',
 
 ## Data Cleaning
 
-Data cleaning of the majority of the collected data pertaining to manager and program information was beyond the scope of this project, and as a result very little of this data was used in the modeling sector of the paper. 
+Data cleaning of the majority of the collected data pertaining to manager and program information was beyond the scope of this project and as a result, none of this data was used in the modeling sector of the paper. 
 
 The manager and program information collected is somewhat unstructured and visual inspection of the managed futures website reveals many reporting inconsistencies across managers. Our quick exploratory analysis confirms that data is reported somewhat inconsistently by CTAs. In particular, there appears to be very little validation of the manager and program information submitted by CTAs. As a result, this part of the collected data set requires a lot of cleaning and standardization before it can be used effectively in our modeling.
 
