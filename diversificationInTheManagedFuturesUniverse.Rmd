@@ -123,7 +123,7 @@ As the size of a portfolio increases, the number of inter-relationships between 
 In this section, we introduce definitions for portfolio return and variability that will be used throughout the paper.
 
 ###  Portfolio Return
-Portfolio return is a function of the weights and the returns of portfolio investment components. We define the portfolio return for $I$ component investments for the month $m$ given the monthly returns $$r_{i,m}$ and portfolio weights w_{i,m} for each component investment $i$ as:
+Portfolio return is a function of the weights and the returns of portfolio investment components. We define the portfolio return for $I$ component investments for the month $m$ given the monthly returns $r_{i,m}$ and portfolio weights $w_{i,m}$ for each component investment $i$ as:
 
 $$r_{P,m}=\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)$$
 
