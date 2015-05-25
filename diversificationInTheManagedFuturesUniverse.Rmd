@@ -150,6 +150,12 @@ $$\sigma_{P,M}=\sqrt{Var\left( {W_{m}}^{T} R_{m} \right)}=\sqrt{{W_{m}}^T\Sigma 
 
 Where $W_{m}$ is a vector of portfolio component weights for month $m$, $T$ denotes the transpose operator, $R_{m}$ is a vector of the month $m$ component returns, and $\Sigma$ is the return covariance matrix.
 
+```{r}
+portfolioVolatility <- function (W,COV){
+  portfolioStandardDeviation = sqrt( t(W)%*%COV%*%W )  
+}
+```
+
 ### Portfolio Return Confidence Intervals:
 Using our definition of portfolio return variability we can define the expected negative fluctuation (i.e., loss) at a given confidence interval as:
 
@@ -1115,6 +1121,8 @@ Participation ratios facilitate the identification of statistical facotrs that r
 
 We can use our factor model to determine the impact of an increase in the proportion of variance described by any given statistical factor on our correlation matrix. By perturbing the eigenvalues up and down and applying the appropriate re-normalizations we create data-coherent approach to generating changes in the correlations driven by a common factor.
 
+The following three functions are used to implement the sensitivity analysis in the application section of the paper.
+
 ```{r,error=FALSE,warning=FALSE}
 perturbCorrelation<-function (shockFactor,factorIndex,eigenvalues,eigenvectors){
   # create the hash to store the results
@@ -1168,7 +1176,38 @@ perturbFactorCorrelation <- function (factorIndex,eigenvalues,eigenvectors){
 ```
 
 
-#### Determining the Impact of Factors on Portfolio Variability
+```{r}
+factorBasedCorrelationSensitivity<-function (numberOfFactors,C){
+  # find the number of rows and columns
+  dimension<-dim(C)
+  # create the storage matrix
+  sensitivity<-matrix(0,numberOfFactors,dimension[2])
+  # compute the eigendecomposition
+  decomposition=eigen(C)
+  # extract eigenvalues
+  eigenvalues=decomposition$values
+  # extract eigenvectors
+  eigenvectors=decomposition$vectors
+  # find the proportion of variance
+  proportionOfVariance=eigenvalues/length(eigenvalues)
+  # find the explained variance
+  explainedVariance=cumsum(proportionOfVariance)
+  # create hash
+  scenariosByFactor<-hash()
+  
+  # iterate over each factor
+  for (factorIndex in 1:numberOfFactors){
+    # perturb the factor
+    scenarios<-perturbFactorCorrelation(factorIndex,eigenvalues,eigenvectors)
+    print(scenarios)
+    scenariosByFactor[paste0('factor_',factorIndex)]<-scenarios
+    #
+    scenarioIndices<-sort(as.numeric(gsub('scenario_','',
+      names(scenariosByFactor[paste0('factor_',factorIndex)]))))
+    }
+  scenariosByFactor
+}
+```
 
 
 ## Applicaton
@@ -1316,6 +1355,40 @@ barplot(participationRatio)
 Using the participation ratio defined in the previous section, we see that `r round(participationRatio[1])` components make significant contributions to the first factor. This is in strong contrast to the other factors where the number of components making significant contribtions is between `r participationRatioRange[1]` and `r participationRatioRange[2]`. 
 
 Although more examination of the factors would be required to get an deeper intuitive sense of the factors, we proceed to illustrating how our simple statistical factor model can be used to create sensitivities linking
+
+#### Determining the Impact of Factors on Portfolio Variability
+
+```{r}
+numberOfFactors<-1
+numberOfScenarios<-50
+scenarioByFactor<-factorBasedCorrelationSensitivity(numberOfFactors,C)
+dimension<-dim(C)
+I<-dimension[1]
+W<-rep(1,I)/I
+
+correlationScenarios<-matrix(0,numberOfScenarios,dimension[1]*dimension[2])
+proportionOfVarianceByFactor<-hash()
+correlationScenariosByFactor<-hash()
+varianceScenarios<-matrix(0,numberOfScenarios,dimension)
+portfolioV<-matrix(0,numberOfScenarios,2)
+for (factorIndex in 1:numberOfFactors){
+  for (scenarioIndex in 1:numberOfScenarios){
+    #
+    v<-eval(parse(text=(as.symbol(paste0('scenarioByFactor$factor_',factorIndex,
+      '$scenario_',scenarioIndex,'$proportionOfVariance')))))
+    varianceScenarios[scenarioIndex,]<-v
+    C<-eval(parse(text=(as.symbol(paste0('scenarioByFactor$factor_',factorIndex,
+      '$scenario_',scenarioIndex,'$correlation')))))
+    # 
+    portfolioV[scenarioIndex,factorIndex]<-portfolioVolatility(W,C)
+    
+    correlationScenarios[scenarioIndex,]<-matrix(C,1,dimension[1]*dimension[2])
+  }
+  proportionOfVarianceByFactor[paste0('factor_',factorIndex)]<-vv
+  correlationScenariosByFactor[paste0('factor_',factorIndex)]<-correlationScenarios
+}
+```
+
 
 # Conclusions
 
