@@ -982,7 +982,7 @@ sortIndex<-sort.int(cleanTable[,2],index.return=TRUE,decreasing=TRUE)
 knitr::kable(cleanTable[sortIndex$ix,2:3],caption='Programs By Country - Cleaned')
 ```
 
-Now we can see that `r cleanTable[cleanTable[,1]=='United States',3]`% of the reporting managed futures programs are operated out of the united states and `r cleanTable[cleanTable[,1]=='United Kingdom',3]`% are operated out of the United Kingdom. The vast majority of programs are operated out of these two regions (`r cleanTable[cleanTable[,1]=='United States',3]+cleanTable[cleanTable[,1]=='United Kingdom',3]`%). It is also notable that `r cleanTable[cleanTable[,1]=='Unreported',3]`% of managers do not provide information about their geographical location.
+Now we can see that `r cleanTable[cleanTable[,1]=='United States',3]`% of the reporting managed futures programs are operated out of the United States and `r cleanTable[cleanTable[,1]=='United Kingdom',3]`% are operated out of the United Kingdom. The vast majority of programs are operated out of these two regions (`r cleanTable[cleanTable[,1]=='United States',3]+cleanTable[cleanTable[,1]=='United Kingdom',3]`%). It is also notable that `r cleanTable[cleanTable[,1]=='Unreported',3]`% of managers do not provide information about their geographical location.
 
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
