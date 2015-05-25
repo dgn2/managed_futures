@@ -1159,7 +1159,7 @@ perturbFactorCorrelation <- function (factorIndex,eigenvalues,eigenvectors){
   # create the hash
   scenarios<-hash()
   # create shock scenarios
-  shockFactors<-seq(from=0.1,to=5,by=0.1)
+  shockFactors<-seq(from=0.2,to=5,by=0.2)
 
   # iterate over shock factors
   for (shockIndex in seq_along(shockFactors)){
@@ -1349,7 +1349,7 @@ Although more examination of the factors would be required to get an deeper intu
 
 ```{r}
 numberOfFactors<-1
-numberOfScenarios<-50
+numberOfScenarios<-25
 scenarioByFactor<-factorBasedCorrelationSensitivity(numberOfFactors,C)
 dimension<-dim(C)
 I<-dimension[1]
