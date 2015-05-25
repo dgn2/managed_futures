@@ -2,7 +2,7 @@
 title: "Diversification in the Managed Futures Universe"
 author: "Derek G. Nokes, CUNY"
 date: "Friday, May 22, 2015"
-output: html_document
+output: pdf_document
 toc: yes
 ---
 
@@ -1058,8 +1058,6 @@ If the sign of every coefficient in a statistical factor $f_{k}$ is reversed, ne
 nSignificantPCs<-5
 ```
 
-
-
 The covariance matrix $\Sigma_{F}$ for the statistical factor matrix $F$ can be written as:
 
 $$\Sigma_{F}=\frac{1}{M}FF^{T}=\frac{1}{M}\Omega\hat{R}\hat{R}^{T} \Omega^{T} = D$$
@@ -1085,6 +1083,47 @@ The proportion of the variance from the $k^{th}$ factor is equal to the ratio of
 To determine how many statistical factors are needed to describe the correlations between investments, many methods have been proposed. There is no widespread agreement on an optimal approach. In this paper we select the most stra
 
 Apply two techniques to find the number of significant components. The assumes that a factor is significant if its eigenvalue $d > 1/N$. Any component that satisfies this criterion accounts for more than a fraction ($1/N$) of the variance of the system. It is considered significant because it is assumed to summarize more information than any single original variable. 
+
+#### Significant Statistical Factor Coefficients
+An increase in the variance for which a factor accounts might be the result of increases in the correlations among only a few investment programs (which then have large factor coefficients) or an effect in which many investment programs begin to make significant contributions to the factor, This is an important distinction, because the two types of changes have very different implications for portfolio management. It becomes much more difficult to reduce risk by diversifying across different investment when correlations between all investments increase. In contrast, increases in correlations within an investment type that are not accompanied by increases in correlations between investment types have a less significant impact on diversification.
+
+##### Inverse Participation Ratio (IPR)
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# define the inverse participation ratio (IPR)
+inverseParticipationRatio <- function (k,omega){
+  # find the IPR
+  IPR<-sum(omega[,k]^4)
+  # return the IPR
+  IPR
+}
+# define the participation ratio (PR)
+PR<- function (k,omega){
+  # find the IPR
+  IPR<-inverseParticipationRatio(k,omega)
+  # take the inverse of the IPR
+  PR<-1/IPR
+  # return the PR
+  PR
+}
+```
+
+The inverse participation ratio $I_{k}$ of the $k^{th}$ factor $\omega_{k}$ is defined as:
+
+$$IPR_{k}=\sum_{i=1}^{I}\left( \omega_{k,i}\right)^{4}$$
+
+The IPR quantifies the reciprocal of the number of elements that make a significant contribution to each eigenvector.
+
+The behavior of the IPR is bounded by two cases:
+
+[1] An eigenvector with identical contributions $\omega_{k,i}=frac{1}{\sqrt{I}}$ from all $I$ investments has $IPR_{k}=\frac{1}{I}$
+
+[2] An eigenvector with a single factor $\omega_{k,i}=1$ and remaining factors equal to zero has $IPR=1$
+
+The inverse of the IPR - the so-called participation ratio - provides a more intuitive measure of the significance of a given factor as a large $PR$ indicates that many investments contribute to the factor, while a small $PR$ signals that few investments contribute to the factor:
+
+$PR = \frac{1}{IPR_{k}}$
+
 
 ### Portfolio Factor Sensitivities
 
@@ -1200,59 +1239,42 @@ knitr::kable(head(proportionOfVarianceTable,10),digits=1)
 
 The first statistical factor accounts for `r round(proportionOfVarianceTable[1,2])`% of the variation of the sytems. Indeed the first factor is the most significant by far. The second factor acounts for another `r round(proportionOfVarianceTable[2,2])`% of the variation, and the third component accounts for `r round(proportionOfVarianceTable[3,2])`% more. Indeed, the first three factors together account for `r round(proportionOfVarianceTable[3,3])`% of the variation. The first 10 factors acount for `r round(proportionOfVarianceTable[1,3])`% proportion of the variation in the system. By focusing on just three factors we can understand a very significant proportion of the total variation in the managed futures universe under study.
 
-When we sort the factor loadings by the first factor we can see that the all but two (relative value) funds contribute to the first factor, with the long- and medium- term trend-following funds making the strongest contributions and the volatility selling, short-term and relative value programs having small or negative loadings. The first factor can be thought of as a 'long directional' volatility factor.
+When we sort the factor loadings by the first factor we can see that the all but two (relative value) funds contribute to the first factor, with the long- and medium- term trend-following funds making the strongest contributions and the volatility selling, short-term and relative value programs having small or negative loadings. 
 
-#### Significant Statistical Factor Coefficients
-An increase in the variance for which a factor accounts might be the result of increases in the correlations among only a few investment programs (which then have large factor coefficients) or an effect in which many investment programs begin to make significant contributions to the factor, This is an important distinction, because the two types of changes have very different implications for portfolio management. It becomes much more difficult to reduce risk by diversifying across different investment when correlations between all investments increase. In contrast, increases in correlations within an investment type that are not accompanied by increases in correlations between investment types have a less significant impact on diversification.
+The ten smallest factor loadings are:
 
-##### Inverse Participation Ratio (IPR)
-
-
-```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# define the inverse participation ratio (IPR)
-inverseParticipationRatio <- function (k,omega){
-  # find the IPR
-  IPR<-sum(omega[,k]^4)
-  # return the IPR
-  IPR
-}
-# define the participation ratio (PR)
-PR<- function (k,omega){
-  # find the IPR
-  IPR<-inverseParticipationRatio(k,omega)
-  # take the inverse of the IPR
-  PR<-1/IPR
-  # return the PR
-  PR
-}
+```{r}
+# bind the CTA names, program names, and eigenvectors (factor loadings)
+factorTable<-cbind(ctaNames,ctaPrograms,eigenvectors)
+# create the sort index for factor 1
+factor_1_Index<-sort.int(factorTable[,3],index.return=TRUE)
+# create the table to show the ten smallest factor loadings
+knitr::kable(head(factorTable[factor_1_Index$ix,c(1,2,3)],10),digits=4,main='Smallest Factor 1 Loadings')
 ```
 
+The ten largest factor loadings are:
 
-The inverse participation ratio $I_{k}$ of the $k^{th}$ factor $\omega_{k}$ is defined as:
+```{r}
+# create the table to show the ten largest factor loadings
+knitr::kable(tail(factorTable[factor_1_Index$ix,c(1,2,3)],10),digits=4,main='Smallest Factor 1 Loadings')
+```
 
-$$IPR_{k}=\sum_{i=1}^{I}\left( \omega_{k,i}\right)^{4}$$
+The first factor can be thus thought of as a 'long directional volatility' factor.
 
-The IPR quantifies the reciprocal of the number of elements that make a significant contribution to each eigenvector.
+```{r}
+# create the participation ratio for all statistical factors
+participationRatio<-NULL
+for (k in 1:groupDataDimension[2]){ 
+  participationRatio[k]<-PR(k,eigenvectors) 
+  }
+participationRatioRange<-round(range(participationRatio[2:groupDataDimension[2]]))
+barplot(participationRatio)
 
-The behavior of the IPR is bounded by two cases:
+```
 
-[1] An eigenvector with identical contributions $\omega_{k,i}=frac{1}{\sqrt{I}}$ from all $I$ investments has $IPR_{k}=\frac{1}{I}$
+Using the participation ratio defined in the previous section, we see that `r round(participationRatio[1])` components make significant contributions to the factor. This is in strong contrast to the other factors where the number of components making significant contribtions is between `r participationRatioRange[1]` and `r participationRatioRange[2]`. 
 
-[2] An eigenvector with a single factor $\omega_{k,i}=1$ and remaining factors equal to zero has $IPR=1$
-
-The inverse of the IPR - the so-called participation ratio - provides a more intuitive measure of the significance of a given factor as a large $PR$ indicates that many investments contribute to the factor, while a small $PR$ signals that few investments contribute to the factor:
-
-$PR = \frac{1}{IPR_{k}}$
-
-
-
-#### Temporal Evolution
-We show as a function of time the fraction of the variance $frac{d_{k}}{N}$ due to the first `r nSignificantPCs` statistical factors $f_{k} (k=1,...,$ `r nSignificantPCs`$)$.
-
-We also investigate temporal changes in the number of investments that make significant contributions to each statistical factor.
-
-The large variance in investment returns explained by a single factor implies that there is a large amount of common variation in the investment universe.
-
+Although more examination of the factors would be required to get an deeper intuitive sense of the factors, we proceed to illustrating how our simple statistical factor model can be used to create sensitivities linking
 
 # Conclusions
 
