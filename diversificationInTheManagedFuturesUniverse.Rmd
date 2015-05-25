@@ -2,7 +2,7 @@
 title: "Diversification in the Managed Futures Universe"
 author: "Derek G. Nokes, CUNY"
 date: "Friday, May 22, 2015"
-output: pdf_document
+output: html_document
 toc: yes
 ---
 
@@ -882,6 +882,8 @@ query<-paste0("SELECT DISTINCT cta_name,program_name,program_id,MIN(eom_date) AS
   minDate,"' GROUP BY program_id ORDER BY cta_name;")
 ctaList<-dbGetQuery(dbHandle,query)
 programIds<-ctaList['program_id']
+ctaNames<-ctaList['cta_name']
+ctaPrograms<-ctaList['program_name']
 ```
 
 We can iterate over each program with historical data available prior to `r minDate` and extract the return data, adding each CTA program return stream to the group.
@@ -1171,28 +1173,46 @@ C <- cor(standardizedReturns,use="na.or.complete")
 
 ### Statistical Factor Analysis
 
-###  
+Decompose the correlation matrix into statistical factors
 
+```{r}
+# compute the eigendecomposition
+decomposition=eigen(C)
+eigenvalues=decomposition$values
+eigenvectors=decomposition$vectors
 
+proportionOfVariance=eigenvalues/length(eigenvalues)
+explainedVariance=cumsum(proportionOfVariance)
+```
 
-In this section was 
+The top 5 factors 
 
-- do PCA
+```{r}
+makeFactorName<-function (x){ paste0('Factor ',x)}
+x<-1:groupDataDimension[2]
+factorNames<-makeFactorName(x)
+proportionOfVarianceTable<-cbind(data.frame(factorNames),proportionOfVariance*100,
+  explainedVariance*100)
+columnNames<-c('Factors','Proportion of Variance','Cumulative Proportion of Variance')
+colnames(proportionOfVarianceTable)<-columnNames
+knitr::kable(head(proportionOfVarianceTable,10),digits=1)
+```
 
-- number of significant components
+The first statistical factor accounts for `r round(proportionOfVarianceTable[1,2])`% of the variation of the sytems. Indeed the first factor is the most significant by far. The second factor acounts for another `r round(proportionOfVarianceTable[2,2])`% of the variation, and the third component accounts for `r round(proportionOfVarianceTable[3,2])`% more. Indeed, the first three factors together account for `r round(proportionOfVarianceTable[3,3])`% of the variation. The first 10 factors acount for `r round(proportionOfVarianceTable[1,3])`% proportion of the variation in the system. By focusing on just three factors we can understand a very significant proportion of the total variation in the managed futures universe under study.
 
-- universe diversification over time
+When we sort the factor loadings by the first factor we can see that the all but two (relative value) funds contribute to the first factor, with the long- and medium- term trend-following funds making the strongest contributions and the volatility selling, short-term and relative value programs having small or negative loadings. The first factor can be thought of as a 'long directional' volatility factor.
 
 #### Significant Statistical Factor Coefficients
-An increase in the variance for which a factor accounts might be the result of increases in the correlations among only a few assets (which then have large factor coefficients) or a effect in which many investments begin to make significant contributions to the factor, This is an important distinction, because the two types of changes have very different implications for portfolio management. It becomes much more difficult to reduce risk by diversifying across different investment when correlations between all investments increase. In contrast, increases in correlations within an investment type that are not accompanied by increases in correlations between investment types have a less significant impact on diversification.
+An increase in the variance for which a factor accounts might be the result of increases in the correlations among only a few investment programs (which then have large factor coefficients) or an effect in which many investment programs begin to make significant contributions to the factor, This is an important distinction, because the two types of changes have very different implications for portfolio management. It becomes much more difficult to reduce risk by diversifying across different investment when correlations between all investments increase. In contrast, increases in correlations within an investment type that are not accompanied by increases in correlations between investment types have a less significant impact on diversification.
 
 ##### Inverse Participation Ratio (IPR)
+
 
 ```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # define the inverse participation ratio (IPR)
 inverseParticipationRatio <- function (k,omega){
   # find the IPR
-  
+  IPR<-sum(omega[,k]^4)
   # return the IPR
   IPR
 }
@@ -1223,6 +1243,8 @@ The behavior of the IPR is bounded by two cases:
 The inverse of the IPR - the so-called participation ratio - provides a more intuitive measure of the significance of a given factor as a large $PR$ indicates that many investments contribute to the factor, while a small $PR$ signals that few investments contribute to the factor:
 
 $PR = \frac{1}{IPR_{k}}$
+
+
 
 #### Temporal Evolution
 We show as a function of time the fraction of the variance $frac{d_{k}}{N}$ due to the first `r nSignificantPCs` statistical factors $f_{k} (k=1,...,$ `r nSignificantPCs`$)$.

@@ -732,14 +732,119 @@ barplot(leverageFrequency)</code></pre>
   monthlyReturn&lt;-ctaReturns[,2]/100
   ctaReturn&lt;-data.frame(eomDate,monthlyReturn,stringsAsFactors=FALSE)
   ctaReturn
-  }
-programId&lt;-18600
-ctaReturn&lt;-fetchMonthlyReturnsForCtaByProgramId(dbHandle,programId)
-# compute TWR
-TWR&lt;-cumprod(1+ctaReturn[,2])
-# plot the results
-plot(ctaReturn[,1],TWR,type='l',xlab='time',ylab='TWR',main='Abraham Diversified Program')</code></pre>
-<p><img src="data:image/png;base64,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" title alt width="672" /></p>
+  }</code></pre>
+<pre class="r"><code>library('quantmod')
+library(&quot;reshape2&quot;)
+library(&quot;ggplot2&quot;)
+library('ggthemes')
+library('RColorBrewer')
+library('FactoMineR')
+library('hash')
+
+minDate&lt;-&quot;2005-01-01&quot;
+query&lt;-paste0(&quot;SELECT DISTINCT cta_name,program_name,program_id,MIN(eom_date) AS minDate &quot;,
+  &quot;FROM altegris.cta_monthly_returns WHERE eom_date&lt;'&quot;,
+  minDate,&quot;' GROUP BY program_id ORDER BY cta_name;&quot;)
+ctaList&lt;-dbGetQuery(dbHandle,query)
+programIds&lt;-ctaList['program_id']</code></pre>
+<p>We can iterate over each program with historical data available prior to 2005-01-01 and extract the return data, adding each CTA program return stream to the group.</p>
+<pre class="r"><code># create the xts object to hold the group data
+groupData &lt;- xts()
+
+for (programIndex in 1:dim(programIds)[1]){
+  # get the program ID
+  programId&lt;-programIds[programIndex,1]
+  # get the CTA name
+  ctaName&lt;-ctaList[programIndex,2]
+  # fetch the program returns
+  ctaReturn&lt;-fetchMonthlyReturnsForCtaByProgramId(dbHandle,programId)
+  dataObject&lt;-xts(ctaReturn[,2],order.by=as.POSIXct(ctaReturn[,1],format='%Y-%m-%d'))
+  recentData&lt;-last(dataObject,'10 year')
+  df&lt;-data.frame(date=index(recentData),coredata(recentData))
+  # create the individual graph
+  p1 &lt;- ggplot(ctaReturn, aes(x=eomDate, y=cumprod(1+monthlyReturn))) + geom_line() + 
+    ggtitle(ctaName)+xlab('Time')+ylab('Terminal Wealth Relative (TWR)')+theme_economist()+
+    scale_colour_economist()
+  # label the return data with the program ID
+  colnames(recentData)&lt;-programId
+  # add the individual progrma data to the group
+  groupData &lt;- merge(groupData, recentData)
+}
+groupDataDimension&lt;-dim(groupData)</code></pre>
+<p>We extract 112 months of CTA program return data for 76 distinct managed futures programs.</p>
+<p>Our data includes most of the managers with the most impressive track records.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">cta_name</th>
+<th align="left">program_name</th>
+<th align="left">minDate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">8</td>
+<td align="left">Campbell &amp; Company, LP</td>
+<td align="left">Campbell Managed Futures</td>
+<td align="left">1983-04-30</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="left">Abraham Trading Company</td>
+<td align="left">Abraham Diversified Program</td>
+<td align="left">1990-01-31</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="left">Chesapeake Capital Corporation</td>
+<td align="left">Diversified Program <em>QEP</em></td>
+<td align="left">1990-01-31</td>
+</tr>
+<tr class="even">
+<td align="left">22</td>
+<td align="left">DUNN Capital Management, Inc.</td>
+<td align="left">World Monetary and Agriculture (WMA) Program <em>QEP</em></td>
+<td align="left">1990-01-31</td>
+</tr>
+<tr class="odd">
+<td align="left">26</td>
+<td align="left">EMC Capital Advisors LLC</td>
+<td align="left">Classic Program <em>QEP</em></td>
+<td align="left">1990-01-31</td>
+</tr>
+<tr class="even">
+<td align="left">34</td>
+<td align="left">Hawksbill Capital Management</td>
+<td align="left">Global Diversified Program <em>QEP</em></td>
+<td align="left">1990-01-31</td>
+</tr>
+<tr class="odd">
+<td align="left">43</td>
+<td align="left">Mark J. Walsh &amp; Company</td>
+<td align="left">Standard Program</td>
+<td align="left">1990-01-31</td>
+</tr>
+<tr class="even">
+<td align="left">44</td>
+<td align="left">Michael J. Frischmeyer, CTA</td>
+<td align="left">Michael J. Frischmeyer, CTA <em>CLSD</em></td>
+<td align="left">1990-01-31</td>
+</tr>
+<tr class="odd">
+<td align="left">45</td>
+<td align="left">Millburn Corporation</td>
+<td align="left">Diversified Program</td>
+<td align="left">1990-01-31</td>
+</tr>
+<tr class="even">
+<td align="left">57</td>
+<td align="left">Rabar Market Research, Inc.</td>
+<td align="left">Diversified Program <em>QEP</em></td>
+<td align="left">1990-01-31</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="data-cleaning" class="section level2">
 <h2>Data Cleaning</h2>
@@ -1009,6 +1114,9 @@ knitr::kable(cleanTable[sortIndex$ix,2:3])</code></pre>
 </tbody>
 </table>
 <p>Now we can see that 71.84% of the reporting managed futures programs are operated out of the united states and 9.71% are operated out of the United Kingdom. The vast majority of programs are operated out of these two regions (143.68%). It is also notable that 71.84% of managers do not provide information about their geographical location.</p>
+<pre class="r"><code># disconnect from the 'altegris' database
+dbDisconnect(dbHandle)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
 <p></p>
 </div>
 </div>
@@ -1031,9 +1139,6 @@ knitr::kable(cleanTable[sortIndex$ix,2:3])</code></pre>
 <p><span class="math">\(r_{i,m}\)</span> is the observed return of the <span class="math">\(i^{th}\)</span> investment for the <span class="math">\(m^{th}\)</span> month</p>
 <p><span class="math">\(\bar{r}_{i,M}=\frac{1}{M}\sum_{m=1}^{M}\left(\hat{r}_{m}\right)\)</span> is the mean of the return stream of the <span class="math">\(i^{th}\)</span> investment over the time interval <span class="math">\(M\)</span></p>
 <p><span class="math">\(\sigma(r_{i,M})=\)</span> is the standard deviation of the returns for the <span class="math">\(i^{th}\)</span> investment over the time interval <span class="math">\(M\)</span></p>
-<p>Using a little linear algebra we can standardize the return with the following operation:</p>
-<p><define the mean with algebra></p>
-<p><define the sigma with algebra></p>
 </div>
 <div id="correlations" class="section level4">
 <h4>Correlations</h4>
@@ -1042,22 +1147,16 @@ knitr::kable(cleanTable[sortIndex$ix,2:3])</code></pre>
 <p>Where</p>
 <p><span class="math">\(T\)</span> denotes the matrix transform</p>
 <p>The correlation matrix (<span class="math">\(C\)</span>) of returns (<span class="math">\(\hat{R}\)</span>) and the covariance matrix (<span class="math">\(\Sigma_{\hat{R}}\)</span>) of standardized returns (<span class="math">\(\hat{R}\)</span>) are identical.</p>
-<p><mean return></p>
-<p><span class="math">\(\bar{r}_{i}=\frac{1^{T}\hat{r}_{i}}{I}\)</span></p>
-<p><standard deviation></p>
-<p><covariance></p>
-<p><span class="math">\[\sigma_{i,j}=\frac{1}{M}\hat{r}_{i}^{T}\hat{r}_{j}-\bar{r}_{i}\bar{r}_{j}\]</span></p>
-<p><span class="math">\[\Sigma_{\hat{R}}=\frac{\hat{R}^{T}\hat{R}}{M}-\left( \bar{R_{i}}\bar{R_{j}}\right)\]</span></p>
 </div>
 <div id="principal-component-analysis-pca" class="section level3">
 <h3>Principal Component Analysis (PCA)</h3>
 <p>The objective of principal component analysis (PCA) is to find a linear transformation <span class="math">\(\Omega\)</span> that maps a set of observed variables <span class="math">\(\hat{R}\)</span> into a set of uncorrelated variables <span class="math">\(F\)</span>. We define the <span class="math">\(I\)</span> x <span class="math">\(M\)</span> statistical factor matrix as</p>
-<p><span class="math">\[F = \Omega\hat{R}\]</span> <a href="#section"></a></p>
+<p><span class="math">\[F = \Omega\hat{R}\]</span> []</p>
 <p>Where each row <span class="math">\(f_{k}\)</span> (<span class="math">\(k = 1, \dots ,N\)</span>) corresponds to a factor <span class="math">\(F\)</span> of <span class="math">\(\hat{R}\)</span> and the transformation matrix <span class="math">\(\Omega\)</span> has elements <span class="math">\(\omega_{k,i}\)</span>. The first row of <span class="math">\(\omega_{1}\)</span> (which contains the first set of factor coefficients or ‘loadings’) is chosen such that the first factor (<span class="math">\(f_{1}\)</span>) is aligned with the direction of maximal variance in the <span class="math">\(I\)</span>-dimensional space defined by <span class="math">\(\hat{R}\)</span>. Each subsequent factor (<span class="math">\(f_{k}\)</span>) accounts for as much of the remaining variance of the standardized returns <span class="math">\(\hat{R}\)</span> as possible, subject to the constraint that the <span class="math">\(\omega_{k}\)</span> are mutually orthogonal. The vectors <span class="math">\(\omega_{k}\)</span> are further constrained by requiring that <span class="math">\(\omega_{k}\omega_{k}^{T}=1\)</span> for all <span class="math">\(k\)</span>.</p>
 <p>The correlation matrix <span class="math">\(C\)</span> is an <span class="math">\(I\)</span> x <span class="math">\(I\)</span> diagonalizable symmetric matrix that can be written in the form</p>
-<p><span class="math">\[C = \frac{1}{M}EDE^{T}\]</span> <a href="#section"></a></p>
+<p><span class="math">\[C = \frac{1}{M}EDE^{T}\]</span> []</p>
 <p>Where <span class="math">\(D\)</span> is a diagonal matrix of eigenvalues <span class="math">\(d\)</span> and <span class="math">\(E\)</span> is an orthogonal matrix of the corresponding eigenvectors.</p>
-<p>The eigenvectors of the correlation matrix <span class="math">\(C\)</span> correspond to the directions of maximal variance such that <span class="math">\(\Omega=E^{T}\)</span>, and one finds the statistical factors / principal components <span class="math">\(F\)</span> using the diagonalization in <a href="#section"></a>.</p>
+<p>The eigenvectors of the correlation matrix <span class="math">\(C\)</span> correspond to the directions of maximal variance such that <span class="math">\(\Omega=E^{T}\)</span>, and one finds the statistical factors / principal components <span class="math">\(F\)</span> using the diagonalization in [].</p>
 <p>If the sign of every coefficient in a statistical factor <span class="math">\(f_{k}\)</span> is reversed, neither the variance of <span class="math">\(f_{k}\)</span> nor the orthogonality of <span class="math">\(\omega\)</span> with respect to each of the other eigenvectors changes. For this reason, the signs of factors (PCs) are arbitrary. This feature of PCA can be problematic when we are interested in the temporal evolution of factors.</p>
 <div id="proportion-of-variance" class="section level4">
 <h4>Proportion of Variance</h4>
@@ -1071,29 +1170,13 @@ knitr::kable(cleanTable[sortIndex$ix,2:3])</code></pre>
 <p>The proportion of the total variance in <span class="math">\(\hat{R}\)</span> explained by the <span class="math">\(k^{th}\)</span> factor is then</p>
 <p><span class="math">\[\frac{\sigma^{2}(f_{k})}{\Sigma_{i=1}^{I}\sigma^{2}(\hat{r_{i}})}=\frac{d_{k}}{\Sigma_{i=1}^{I}d_{k}}=\frac{d_{k}}{I}\]</span></p>
 <p>The proportion of the variance from the <span class="math">\(k^{th}\)</span> factor is equal to the ratio of the <span class="math">\(k^{th}\)</span> largest eigenvalue <span class="math">\(d_{k}\)</span> to the number of investments <span class="math">\(I\)</span>.</p>
-<p>The large variance in investment returns explained by a single factor implies that there is a large amount of common variation in the investment universe.</p>
 </div>
-</div>
-<div id="random-matrix-theory-rmt" class="section level3">
-<h3>Random Matrix Theory (RMT)</h3>
 <div id="number-of-significant-components" class="section level4">
 <h4>Number of Significant Components</h4>
-<p>determine how many statistical factors are needed to describe the correlations between investments PCA is widely used to produce lower-dimensional representations of multivariate data by retaining a few “significant” components and discarding all other components. Many heuristic methods have been proposed for determining the number of significant factors, but there is no widespread agreement on an optimal approach</p>
-<p>Apply two techniques to find the number of significant components. The assumes that a factor is significant if its eigenvalue <span class="math">\(d &gt; 1/N\)</span>. Any component that satisfies this criterion accounts for more than a fraction (<span class="math">\(1/N\)</span>) of the variance of the system. It is considered significant because it is assumed to summarize more information than any single original variable. The second approach is to compare the observed eigenvalues to the eigenvalues for random data and can be understood by considering the scree plot (figure ???). A scree plot shows the magnitudes of the eigenvalues as a function of the eigenvalue index, where the eigenvalues are sorted such that <span class="math">\(\beta 1 \beta 2 \beta N\)</span>. The leftmost data point in the scree plot indicates the magnitude of the largest eigenvalue, and the rightmost data point indicates the magnitude of the smallest eigenvalue. The number of significant PCs is given by the number of eigenvalues in the scree plot for which the eigenvalue for the observed data is larger than the corresponding eigenvalue for random data</p>
-<p>We explore</p>
-<ul>
-<li><p>topic intro</p></li>
-<li><p>outline how we determine # of significant components</p></li>
-</ul>
+<p>To determine how many statistical factors are needed to describe the correlations between investments, many methods have been proposed. There is no widespread agreement on an optimal approach. In this paper we select the most stra</p>
+<p>Apply two techniques to find the number of significant components. The assumes that a factor is significant if its eigenvalue <span class="math">\(d &gt; 1/N\)</span>. Any component that satisfies this criterion accounts for more than a fraction (<span class="math">\(1/N\)</span>) of the variance of the system. It is considered significant because it is assumed to summarize more information than any single original variable.</p>
 </div>
 </div>
-</div>
-<div id="section" class="section level2">
-<h2></h2>
-<ul>
-<li><p>outline factor sensitivities [time permitting]</p></li>
-<li><p>outline VaR [time permitting]</p></li>
-</ul>
 <div id="portfolio-factor-sensitivities" class="section level3">
 <h3>Portfolio Factor Sensitivities</h3>
 <p>-math for increasing/decreasing importance of factors</p>
@@ -1118,24 +1201,127 @@ knitr::kable(cleanTable[sortIndex$ix,2:3])</code></pre>
 </ul>
 <div id="data-preprocessing" class="section level3">
 <h3>Data Preprocessing</h3>
-<ul>
-<li>de-trend and scale the returns</li>
-</ul>
+<pre class="r"><code># standardize returns
+standardize&lt;-function(x) (x - mean(x,na.rm=TRUE)) / sd(x,na.rm=TRUE)
+# unstandardize returns
+unstandardize&lt;-function(scaledX,meanX,sdX) ((scaledX * as.vector(sdX)) + as.vector(meanX))
+#
+unstandardizePaths &lt;- function (scaledX,meanX,sdX){
+  # get column labels
+  columnNames&lt;-colnames(scaledX)
+  # get row labels
+  rowNames&lt;-rownames(scaledX)
+  # find the rows and columns of the input matrix  
+  dimension&lt;-dim(scaledX)
+  # create matrix to store unstandardized
+  unstandardizedReturns&lt;-matrix(0,dimension[1],dimension[2])
+  for (pathIndex in 1:dimension[2]){
+    # reverse standardization
+    unstandardizedReturns[,pathIndex]&lt;-unstandardize(scaledX[,pathIndex],
+      meanX[pathIndex],sdX[pathIndex])
+  }
+  # add column labels
+  colnames(unstandardizedReturns)&lt;-columnNames
+  # add row labels
+  rownames(unstandardizedReturns)&lt;-rowNames
+  # return standardized paths
+  unstandardizedReturns
+}</code></pre>
+<pre class="r"><code># find the mean return
+componentReturn&lt;-apply(groupData,2, na.rm = TRUE,mean)
+# find the variance
+componentVariance&lt;-apply(groupData,2, na.rm = TRUE,var)
+# find the standard deviation
+componentVolatility&lt;-apply(groupData,2, na.rm = TRUE,sd)
+# standardize the returns
+standardizedReturns&lt;-apply(groupData,2,standardize)</code></pre>
+<pre class="r"><code># compute the correlation
+C &lt;- cor(standardizedReturns,use=&quot;na.or.complete&quot;)</code></pre>
 </div>
 <div id="statistical-factor-analysis" class="section level3">
 <h3>Statistical Factor Analysis</h3>
-</div>
-<div id="section-1" class="section level3">
-<h3></h3>
-<p>In this section was</p>
-<ul>
-<li><p>do PCA</p></li>
-<li><p>number of significant components</p></li>
-<li><p>universe diversification over time</p></li>
-</ul>
+<p>Decompose the correlation matrix into statistical factors</p>
+<pre class="r"><code># compute the eigendecomposition
+decomposition=eigen(C)
+eigenvalues=decomposition$values
+eigenvectors=decomposition$vectors
+
+proportionOfVariance=eigenvalues/length(eigenvalues)
+explainedVariance=cumsum(proportionOfVariance)</code></pre>
+<p>The top 5 factors</p>
+<pre class="r"><code>makeFactorName&lt;-function (x){ paste0('Factor ',x)}
+x&lt;-1:groupDataDimension[2]
+factorNames&lt;-makeFactorName(x)
+proportionOfVarianceTable&lt;-cbind(data.frame(factorNames),proportionOfVariance*100,
+  explainedVariance*100)
+columnNames&lt;-c('Factors','Proportion of Variance','Cumulative Proportion of Variance')
+colnames(proportionOfVarianceTable)&lt;-columnNames
+knitr::kable(head(proportionOfVarianceTable,10),digits=1)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Factors</th>
+<th align="right">Proportion of Variance</th>
+<th align="right">Cumulative Proportion of Variance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Factor 1</td>
+<td align="right">36.8</td>
+<td align="right">36.8</td>
+</tr>
+<tr class="even">
+<td align="left">Factor 2</td>
+<td align="right">8.8</td>
+<td align="right">45.7</td>
+</tr>
+<tr class="odd">
+<td align="left">Factor 3</td>
+<td align="right">6.5</td>
+<td align="right">52.1</td>
+</tr>
+<tr class="even">
+<td align="left">Factor 4</td>
+<td align="right">4.0</td>
+<td align="right">56.1</td>
+</tr>
+<tr class="odd">
+<td align="left">Factor 5</td>
+<td align="right">3.6</td>
+<td align="right">59.8</td>
+</tr>
+<tr class="even">
+<td align="left">Factor 6</td>
+<td align="right">3.0</td>
+<td align="right">62.8</td>
+</tr>
+<tr class="odd">
+<td align="left">Factor 7</td>
+<td align="right">2.5</td>
+<td align="right">65.3</td>
+</tr>
+<tr class="even">
+<td align="left">Factor 8</td>
+<td align="right">2.2</td>
+<td align="right">67.6</td>
+</tr>
+<tr class="odd">
+<td align="left">Factor 9</td>
+<td align="right">2.2</td>
+<td align="right">69.8</td>
+</tr>
+<tr class="even">
+<td align="left">Factor 10</td>
+<td align="right">2.0</td>
+<td align="right">71.8</td>
+</tr>
+</tbody>
+</table>
+<p>The first statistical factor accounts for <code>round(proportionOfVarianceTable[1,2])</code>% of the variation of the sytems. Indeed the first factor is the most significant by far. The second factor acounts for another <code>round(proportionOfVarianceTable[2,2])</code>% of the variation, and the third component accounts for <code>round(proportionOfVarianceTable[3,2])</code>% more. Indeed, the first three factors together account for <code>round(proportionOfVarianceTable[3,3])</code>% of the variation. The first 10 factors acount for <code>round(proportionOfVarianceTable[1,3])</code>% proportion of the variation in the system. By focusing on just three factors we can understand a very significant proportion of the total variation in the managed futures universe under study.</p>
 <div id="significant-statistical-factor-coefficients" class="section level4">
 <h4>Significant Statistical Factor Coefficients</h4>
-<p>An increase in the variance for which a factor accounts might be the result of increases in the correlations among only a few assets (which then have large factor coefficients) or a effect in which many investments begin to make significant contributions to the factor, This is an important distinction, because the two types of changes have very different implications for portfolio management. It becomes much more difficult to reduce risk by diversifying across different investment when correlations between all investments increase. In contrast, increases in correlations within an investment type that are not accompanied by increases in correlations between investment types have a less significant impact on diversification.</p>
+<p>An increase in the variance for which a factor accounts might be the result of increases in the correlations among only a few investment programs (which then have large factor coefficients) or an effect in which many investment programs begin to make significant contributions to the factor, This is an important distinction, because the two types of changes have very different implications for portfolio management. It becomes much more difficult to reduce risk by diversifying across different investment when correlations between all investments increase. In contrast, increases in correlations within an investment type that are not accompanied by increases in correlations between investment types have a less significant impact on diversification.</p>
 <div id="inverse-participation-ratio-ipr" class="section level5">
 <h5>Inverse Participation Ratio (IPR)</h5>
 <p>The inverse participation ratio <span class="math">\(I_{k}\)</span> of the <span class="math">\(k^{th}\)</span> factor <span class="math">\(\omega_{k}\)</span> is defined as:</p>
@@ -1152,6 +1338,7 @@ knitr::kable(cleanTable[sortIndex$ix,2:3])</code></pre>
 <h4>Temporal Evolution</h4>
 <p>We show as a function of time the fraction of the variance <span class="math">\(frac{d_{k}}{N}\)</span> due to the first 5 statistical factors <span class="math">\(f_{k} (k=1,...,\)</span> 5<span class="math">\()\)</span>.</p>
 <p>We also investigate temporal changes in the number of investments that make significant contributions to each statistical factor.</p>
+<p>The large variance in investment returns explained by a single factor implies that there is a large amount of common variation in the investment universe.</p>
 </div>
 </div>
 </div>
@@ -1190,7 +1377,7 @@ knitr::kable(cleanTable[sortIndex$ix,2:3])</code></pre>
 </div>
 <div id="acknowledgements" class="section level1">
 <h1>Acknowledgements</h1>
-<p>I would like to acknowledge discussions with Paul Britton and Jean de Caruful of Apollo Systems Research Corporation. Both individuals have provided feedback about the ideas presented in this paper over the years. The views expressed in this paper do not reflect the views of my current employer, the Canadian Medical Protective Association, or any of my previous employers, including Apollo Systems Research Corporation.</p>
+<p>I would like to acknowledge useful discussions with Paul Britton and Jean de Carufel of Apollo Systems Research Corporation. Both individuals have provided feedback about the ideas presented in this paper over the years. The views expressed in this paper do not reflect the views of my current employer, the Canadian Medical Protective Association (CMPA), or any of my previous employers, including Apollo Systems Research Corporation.</p>
 <p></p>
 </div>
 <div id="appendix-a-github-repository" class="section level1">
