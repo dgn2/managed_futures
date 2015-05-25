@@ -2,7 +2,7 @@
 title: "Diversification in the Managed Futures Universe"
 author: "Derek G. Nokes, CUNY"
 date: "Friday, May 22, 2015"
-output: pdf_document
+output: html_document
 toc: yes
 ---
 
