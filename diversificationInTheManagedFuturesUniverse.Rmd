@@ -993,13 +993,12 @@ dbDisconnect(dbHandle)
 \pagebreak
 
 # Modeling
-
-In this section we provide a brief overview of the theory underlying our application.
+In the previous section, we provided an overview of the process used to obtain the monthly returns for all distinct CTA programs available in the Altegris managed futures database. In this section we first provide a brief overview of the theory underlying our simple factor model of managed futures program returns. We then build and use a factor model to create sensitivities that map the proportion of total variance in the investment universe to portfolio variation. This sensitivity allows us to monitor the time-varying proportion of variance explained by the first few statistical factors and instantly convert these measures of market state into portfolio variability. 
 
 ## Theory
-In the previous section, we provided an overview of the process used to obtain the monthly returns for all distinct CTA programs available in the Altegris managed futures database.
 
-In this section, we provide a brief overview the theoretical underpinnings of the modeling approach employed in our application. In particular, we provide an outline of the eigen-decomposition underlying the statistical factor analysis and outline an approach for determining how many investment components contribute to each statistical factor.
+
+In this section, we provide a brief overview the theoretical underpinnings of the modeling approach employed in our application. In particular, we provide an outline of the eigen-decomposition underlying the statistical factor analysis and outline an approach for determining how many investment components contribute to each statistical factor. We conclude this section by introducing an approach for computing factor sensitivities.
 
 #### Standardized Returns
 Standardization rescales a variable while preserving its order. <add info from the matrix decomposition book>
@@ -1010,13 +1009,13 @@ $$\hat{r}_{i,m}=\frac{\left( r_{i,m}-\bar{r}_{i,M}\right)}{\sigma(r_{i,M})}$$
 
 Where
 
-$\hat{r}_{i,m}$ is the standardized return of the $i^{th}$ investment for the $m^{th}$ month using data over the time interval $M$
+$\hat{r}_{i,m}$ is the standardized return of the $i^{th}$ investment for the $m^{th}$ month using data over the time interval one to $M$
 
 $r_{i,m}$ is the observed return of the $i^{th}$ investment for the $m^{th}$ month
 
-$\bar{r}_{i,M}=\frac{1}{M}\sum_{m=1}^{M}\left(\hat{r}_{m}\right)$ is the mean of the return stream of the $i^{th}$ investment over the time interval $M$
+$\bar{r}_{i,M}=\frac{1}{M}\sum_{m=1}^{M}\left(\hat{r}_{m}\right)$ is the mean of the return stream of the $i^{th}$ investment over the time interval one to $M$
 
-$\sigma(r_{i,M})=$ is the standard deviation of the returns for the $i^{th}$ investment over the time interval $M$
+$\sigma(r_{i,M})=$ is the standard deviation of the returns for the $i^{th}$ investment over the time interval one to $M$
 
 #### Correlations
 We represent the standardized returns as an $I$ x $M$ matrix $\hat{R}$ with an empirical correlation matrix $C$ defined as:
@@ -1032,18 +1031,18 @@ The correlation matrix ($C$) of returns ($\hat{R}$) and the covariance matrix ($
 ### Principal Component Analysis (PCA)
 The objective of principal component analysis (PCA) is to find a linear transformation $\Omega$ that maps a set of observed variables $\hat{R}$ into a set of uncorrelated variables $F$. We define the $I$ x $M$ statistical factor matrix as
 
-$$F = \Omega\hat{R}$$ []
+$$F = \Omega\hat{R}$$
 
 Where each row $f_{k}$ ($k = 1, \dots ,N$) corresponds to a factor $F$ of $\hat{R}$ and the transformation matrix $\Omega$ has elements $\omega_{k,i}$. The first row of $\omega_{1}$ (which contains the first set of factor coefficients or 'loadings') is chosen such that the first factor ($f_{1}$) is aligned with the direction of maximal variance in the $I$-dimensional space defined by $\hat{R}$. Each subsequent factor ($f_{k}$) accounts for as much of the remaining variance of the standardized returns $\hat{R}$ as possible, subject to the constraint that the $\omega_{k}$ are mutually orthogonal. The vectors $\omega_{k}$ are further constrained by requiring that $\omega_{k}\omega_{k}^{T}=1$ for all $k$.
 
 The correlation matrix $C$ is an $I$ x $I$ diagonalizable symmetric matrix that can be written in the form
 
-$$C = \frac{1}{M}EDE^{T}$$ []
+$$C = \frac{1}{M}EDE^{T}$$
 
 Where 
 $D$ is a diagonal matrix of eigenvalues $d$ and $E$ is an orthogonal matrix of the corresponding eigenvectors.
 
-The eigenvectors of the correlation matrix $C$ correspond to the directions of maximal variance such that $\Omega=E^{T}$, and one finds the statistical factors / principal components $F$ using the diagonalization in []. 
+The eigenvectors of the correlation matrix $C$ correspond to the directions of maximal variance such that $\Omega=E^{T}$. Statistical factors / principal components $F$ are found using the diagonalization above. 
 
 If the sign of every coefficient in a statistical factor $f_{k}$ is reversed, neither the variance of $f_{k}$ nor the orthogonality of $\omega$ with respect to each of the other eigenvectors changes. For this reason, the signs of factors (PCs) are arbitrary. This feature of PCA can be problematic when we are interested in the temporal evolution of factors.
 
@@ -1076,7 +1075,7 @@ $$\frac{\sigma^{2}(f_{k})}{\Sigma_{i=1}^{I}\sigma^{2}(\hat{r_{i}})}=\frac{d_{k}}
 The proportion of the variance from the $k^{th}$ factor is equal to the ratio of the $k^{th}$ largest eigenvalue $d_{k}$ to the number of investments $I$.
 
 #### Number of Significant Components
-To determine how many statistical factors are needed to describe the correlations between investments, many methods have been proposed. There is no widespread agreement on an optimal approach. In this paper we focus on the first factor where we are able to find a clear economic interpretation of the factor.
+To determine how many statistical factors are needed to describe the correlations between investments, many methods have been proposed. There is no widespread agreement on an optimal approach. In this paper we focus on the first factor where we are able to find a clear economic interpretation.
 
 #### Significant Statistical Factor Coefficients
 An increase in the variance associated with  a factor can be the result of increases in the correlations among only a few investment programs (which then have large factor coefficients) or an effect in which many investment programs begin to make significant contributions to the factor, This is an important distinction, because the two types of changes have very different implications for portfolio management. It becomes much more difficult to reduce risk by diversifying across different investment when correlations between all investments increase. In contrast, increases in correlations within an investment type that are not accompanied by increases in correlations between investment types have a less significant impact on diversification.
