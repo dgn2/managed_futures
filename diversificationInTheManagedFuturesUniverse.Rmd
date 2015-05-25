@@ -88,7 +88,7 @@ nCtaPrograms<-200
 
 # Abstract
 
-In this paper we focus on the application of a statistical factor model to a subset of the universe of managed futures investment programs. Our objective is to model the relationships between the returns of a select set of these investment programs and to produce a simple sensitivity providing a map of the return variability of a portfolio to changes in the diversity of the portfolio components as represented by the importance of a few factors. The paper is composed of four main sections encompassing the entire data science workflow.
+In this paper we focus on the application of a statistical factor model to a subset of the universe of managed futures investment programs. Our objective is to model the relationships between the returns of a select set of these investment programs and to produce a simple sensitivity providing a map of the return variability of a portfolio to changes in the diversity of the portfolio components as represented by the *importance* of a few factors. The paper is composed of four main sections encompassing the entire data science workflow.
 
 
 -- Section 1: Introduction and Motivation
@@ -1212,21 +1212,7 @@ factorBasedCorrelationSensitivity<-function (numberOfFactors,C){
 
 ## Applicaton
 
-- data driven approach 
-
--use statistical methods to select and weight factors
-
-- approach uses returns as the independent variables and factors as the dependent variables
-
-- variety of estimation procedures, including classification trees, k-means, and principal components - that can be used to estimate these models. 
-
--statistic is established to determine the criteria for a successful model
-
-- algorithm of the statistical method evaluates the data and compares the results against the criteria. 
-
-
-
-
+In this section we apply the theory outlined in the above section. In particular, we build a simple factor model of managed futures program returns and use it to create sensitivities that map the proportion of total variance in the investment universe to portfolio variation. This sensitivity owns us to monitor the time-varying proportion of variance explained by the first few statistical factors and instantly convert this measure into a portfolio variability. This is particularly useful during times of crisis when the importance of the first few factors increase significantly. 
 
 
 ```{r,echo=displayRCode_Modeling,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
@@ -1238,6 +1224,8 @@ longDf<-melt(df,id="date")
 
 
 ### Data Preprocessing
+
+Prior to any modeling, we standardize the managed futures program returns.
 
 ```{r}
 # standardize returns
@@ -1281,6 +1269,7 @@ componentVolatility<-apply(groupData,2, na.rm = TRUE,sd)
 standardizedReturns<-apply(groupData,2,standardize)
 ```
 
+We compute the correlation
 
 ```{r}
 # compute the correlation
@@ -1289,7 +1278,7 @@ C <- cor(standardizedReturns,use="na.or.complete")
 
 ### Statistical Factor Analysis
 
-Decompose the correlation matrix into statistical factors
+We now decompose the correlation matrix into statistical factors.
 
 ```{r}
 # compute the eigendecomposition
@@ -1301,7 +1290,7 @@ proportionOfVariance=eigenvalues/length(eigenvalues)
 explainedVariance=cumsum(proportionOfVariance)
 ```
 
-The top 5 factors 
+The top 5 factors explain a very significant proportion of the total variance.
 
 ```{r}
 makeFactorName<-function (x){ paste0('Factor ',x)}
@@ -1387,24 +1376,18 @@ for (factorIndex in 1:numberOfFactors){
   proportionOfVarianceByFactor[paste0('factor_',factorIndex)]<-vv
   correlationScenariosByFactor[paste0('factor_',factorIndex)]<-correlationScenarios
 }
+
+plot(varianceScenarios[,1]*100,portfolioV[,1]*100,
+  xlab='Proportion of Total Variance - 1st Factor (%)',
+  ylab='Portfolio Variance (%)',
+  main='Sensitivity Of Portfolio Variance to Changes in the Importance of the First Factor')
 ```
 
+As the proportion of the portfolio variance explained by the first factor increases, the portfolio variance increases. Using this sensitivity measure, we can track the current proportion of variance explained by the first factor and instantly know the impact on the variation of portfolio returns.
 
 # Conclusions
 
-- state conclusions
-
-- state how conclusions help direct future work
-
--- facilitate sensitivity and scenarios analysis / stress testing
-
-- state limitations of linear correlation
-
--- correlation vs. causal
-
-- discuss potential for future work
-
--- Probabilistic Graphical Models (PGM): Bayesian Networks
+Our factor analysis revealed a very significant proportion of the total variance of the modeled managed futures universe can be captured by a single statistical factor. This factor corresponds to a very intuitive scenario. The sensitivity analysis developed - given the intuitive interpretation of the first factor - can be used better understand variation in the managed futures universe and can be used to identify programs that behave differently.
 
 \pagebreak
 
@@ -1434,17 +1417,13 @@ for (factorIndex in 1:numberOfFactors){
 
 [12] R. Vince [2007], The Handbook of Portfolio Mathematics: Formulas for Optimal Allocation and Leverage, John Wiley & Sons, Inc.
 
-# Acknowledgements
-
-I would like to acknowledge useful discussions with Paul Britton and Jean de Carufel of Apollo Systems Research Corporation. Both individuals have provided feedback about the ideas presented in this paper over the years. The views expressed in this paper do not reflect the views of my current employer, the Canadian Medical Protective Association (CMPA), or any of my previous employers, including Apollo Systems Research Corporation.
-
 \pagebreak
 
 # Appendix A: GitHub Repository
 
 All of the R code used to produce this paper can be found in the following github repository:
 
-https://github.com/dgn2/IS607_Final_Project
+https://github.com/dgn2/managed_futures/find/master
 
 The R code required to:
 
@@ -1545,13 +1524,3 @@ A loss of `r DD[50]*100`% requires a gain of `r round(requiredGain[50])`% to rec
 A loss of `r DD[60]*100`% requires a gain of `r round(requiredGain[60])`% to recoup the loss. 
 
 A loss of `r DD[70]*100`% requires a gain of `r round(requiredGain[70])`% to recoup the loss. 
-
-
-
-## Importance of Diversification
-
-```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
-# show the VaR as we increase/decrease the importance of first factor for systematic CTAs
-
-
-```
