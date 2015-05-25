@@ -848,12 +848,12 @@ leverageFrequency<-tabulate(leverage)
 barplot(leverageFrequency)
 ```
 
-Finally, we extract the returns for a single managed futures program as and create a summary of the performance as follows:
+We extract the returns for a single managed futures program as follows:
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 fetchMonthlyReturnsForCtaByProgramId <- function (dbHandle,programId){
-  query<-paste0("SELECT eom_date,monthly_return FROM cta_monthly_returns WHERE program_id=",
-    programId)
+  query<-paste0("SELECT eom_date,monthly_return FROM cta_monthly_returns ",
+    "WHERE program_id=",programId)
   ctaReturns<-dbGetQuery(dbHandle,query)
   eomDate<-as.POSIXct(ctaReturns[,1])
   monthlyReturn<-ctaReturns[,2]/100
@@ -862,6 +862,11 @@ fetchMonthlyReturnsForCtaByProgramId <- function (dbHandle,programId){
   }
 ```
 
+```{r,echo=FALSE,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+minDate<-"2005-01-01"
+```
+
+We find all programs that existed prior to `r minDate`.
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 minDate<-"2005-01-01"
@@ -880,7 +885,7 @@ ctaPrograms[,1]<-gsub('*PROP*','',ctaPrograms[,1])
 ctaPrograms[,1]<-gsub('*Program*','',ctaPrograms[,1])
 ```
 
-We can iterate over each program with historical data available prior to `r minDate` and extract the return data, adding each CTA program return stream to the group.
+We iterate over each program with historical data available prior to `r minDate` and extract the return data, adding each CTA program return stream to a group object.
 
 ```{r,echo=displayRCode_Data,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 # create the xts object to hold the group data
@@ -915,7 +920,8 @@ Our data includes most of the managers with the most impressive track records.
 ```{r,echo=displayRCode_Table,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 oldCtaIndex<-sort.int(ctaList[,4],index.return=TRUE)
 ctaListingTable<-ctaList[oldCtaIndex$ix,c(1,2,4)]
-knitr::kable(head(ctaListingTable,10))
+knitr::kable(head(ctaListingTable,10),caption=paste0('Sample of 10 of the ',
+  groupDataDimension[2],' Programs')
 ```
 
 ## Data Cleaning
