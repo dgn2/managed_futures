@@ -259,6 +259,12 @@ unstandardizePaths <- function (scaledX,meanX,sdX){
 ```
 
 ```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+portfolioVolatility <- function (W,COV){
+  portfolioStandardDeviation = sqrt( t(W)%*%COV%*%W )  
+}
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 perturbCorrelation<-function (shockFactor,factorIndex,eigenvalues,eigenvectors){
   # create the hash to store the results
   scenario<-hash()
