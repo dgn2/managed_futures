@@ -2,10 +2,10 @@
 title: "Diversification In The Managed Futures Universe"
 author: "Derek G Nokes"
 date: "Monday, May 25, 2015"
-output: beamer_presentation
-toc: yes
+output: slidy_presentation
 fig_width: 7
 fig_height: 4
+toc: yes
 ---
 
 ```{r,echo=FALSE,error=FALSE,warning=FALSE,message=FALSE}
@@ -883,23 +883,23 @@ print(zp2)
 
 # Appendix A: GitHub Repository
 
-All of the R code used to produce this paper can be found in the following github repository:
+All of the code used to produce paper and presentation can be found in the following github repository:
 
 <https://github.com/dgn2/managed_futures>
 
-The github repository also includes the .Rmd file used to generate the .pdf working paper file and includes code to:
+The github repository includes .Rmd files used to generate the .pdf working paper and presenation files and includes code to:
 
-* extract CTA manager, program, and monthly return data from the Altegris managed futures website
+* extract CTA manager, program, and monthly return data from Altegris managed futures website
 
 * create a MySQL database with tables to store extracted CTA manager, program, and monthly return data
 
-* load CTA manager, program, and monthly return data to the MySQL database
+* load CTA manager, program, and monthly return data to MySQL database
 
-* conduct limited exploratory analysis of the data
+* conduct limited exploratory analysis of data
 
-* conduct limited cleaning of the data used in subsequent statistical modeling 
+* conduct limited cleaning of data
 
-* estimate statistical factors based on the monthly returns of a select set of CTA programs
+* estimate statistical factors based on monthly returns of a select set of CTA programs
 
 * compute sensitivities
 
