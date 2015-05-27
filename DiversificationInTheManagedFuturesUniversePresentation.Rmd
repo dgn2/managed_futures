@@ -401,8 +401,6 @@ colnames(proportionOfVarianceTable)<-columnNames
 #knitr::kable(head(proportionOfVarianceTable,10),digits=1,caption='Top 5 Factors')
 ```
 
-
-
 # Introduction & Motivation
 
 ## Objective 
