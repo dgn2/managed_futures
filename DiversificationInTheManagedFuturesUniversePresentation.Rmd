@@ -2,7 +2,7 @@
 title: "Diversification In The Managed Futures Universe"
 author: "Derek G Nokes"
 date: "Monday, May 25, 2015"
-output: slidy_presentation
+output: beamer_presentation
 fig_width: 7
 fig_height: 4
 toc: yes
@@ -531,13 +531,13 @@ print(pg)
 
 - Result: None of this data was used in the modeling sector of the paper
 
--- manager and program information collected is somewhat unstructured and visual inspection of the managed futures website reveals many reporting inconsistencies across managers
+-- Manager and program information collected is somewhat unstructured and visual inspection of the managed futures website reveals many reporting inconsistencies across managers
 
--Quick exploratory analysis confirms that data is reported somewhat inconsistently by CTAs
+-- Quick exploratory analysis confirms that data is reported somewhat inconsistently by CTAs
 
 -- In particular, there appears to be very little validation of manager and program information submitted by CTAs
 
-- Result: this part of the collected data set requires a lot of cleaning and standardization before it can be used effectively in our modeling
+- Result: This part of the collected data set requires a lot of cleaning and standardization before it can be used effectively in our modeling
 
 # Data Preprocessing: Standardizing Returns 
 -- Standardization rescales a variable while preserving its order 
@@ -645,7 +645,7 @@ $$r_{P,M}=\left(\prod_{1=m}^{M}\left(1+\left(\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\
 
 - Portfolio returns are multivariate normally distributed
 
--- Standard deviation of portfolio returns (using matrix notation as_:
+-- Standard deviation of portfolio returns (using matrix notation):
 
 $$\sigma_{P,M}=\sqrt{Var\left( {W_{m}}^{T} R_{m} \right)}=\sqrt{{W_{m}}^T\Sigma W_{m}}$$
 
@@ -674,7 +674,7 @@ print(zp2)
 ```
 
 # Top 10 Factors
--First 10 factors explain a very significant proportion of total variance
+-First 10 factors explain a significant proportion of total variance
 
 ```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 makeFactorName<-function (x){ paste0('Factor ',x)}
@@ -712,7 +712,7 @@ participationRatioDf<-data.frame(k=1:k,y=participationRatio)
 
 - Long- and medium- term trend-following programs make strongest positive contributions 
 
-- Volatility selling, short-term and relative value programs having small or negative loadings
+- Volatility selling, short-term and relative value programs have small or negative loadings
 
 -- Participation ratio indicates that `r round(participationRatio[1])` components make significant contributions to first factor
 
@@ -771,7 +771,7 @@ for (factorIndex in 1:numberOfFactors){
 }
 ```
 
--- Perturb 'importance of first factor' up and down 
+-- Perturb *importance of first factor* up and down 
 
 -- Use equation for portfolio standard deviation to determine impact on portfolio
 
@@ -814,7 +814,7 @@ zp2 <- zp2 + scale_fill_gradient2(low=jBuPuPalette[1],mid=jBuPuPalette[paletteSi
 print(zp2)
 ```
 
-# Scenario 1: Importance of First Factor Rises Hard - Way Less Diversification
+# Scenario 2: Importance of First Factor Rises Hard - Way Less Diversification
 
 ```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
 C_F1<-perturbCorrelation(5,1,eigenvalues,eigenvectors)
@@ -843,11 +843,11 @@ print(zp2)
 
 # Conclusions
 
--- Factor analysis revealed a very significant proportion of the total variance of modeled managed futures universe can be captured by a single statistical factor
+-- Factor analysis revealed a significant proportion of total variance of modeled managed futures universe can be captured by a single statistical factor
 
--- First factor corresponds to a very intuitive scenario. 
+-- First factor corresponds to a very intuitive scenario
 
--- Sensitivity analysis developed - given the intuitive interpretation of first factor - can be used to better understand variation in managed futures universe 
+-- Sensitivity analysis developed - given intuitive interpretation of first factor - can be used to better understand variation in managed futures universe 
 
 -- Can be used to identify programs that provide better diversification in different market regimes
 
