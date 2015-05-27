@@ -405,7 +405,7 @@ colnames(proportionOfVarianceTable)<-columnNames
 
 # Introduction & Motivation
 
-# Objective 
+## Objective 
 
 Maximize investors' future wealth by determining how to allocate capital among a set of available managed futures investments in such a way as to maximize *compound* growth subject to a set of constraints
 
@@ -447,7 +447,11 @@ ggplot(nParametersInCDf, aes(x=x, y=y)) + geom_line() +
 -- Can be accomplished through use of statistical *factor models*
 
 # Data
-Extract data for all managed futures programs from the website Altergis ()
+-- Extracted data for all managed futures programs from the Altergis website  (<http://www.managedfutures.com/>)
+
+-- Scraped managed futures program profiles are found here:
+
+- <http://www.managedfutures.com/program_profiles.aspx>
 
 # Raw Data Extraction, Transformation, and Loading (ETL)
 
@@ -525,10 +529,17 @@ print(pg)
 
 # Data Cleaning
 
+-- Data cleaning of majority of collected data pertaining to manager and program information was beyond scope of this project 
 
-# Modeling
+- Result: None of this data was used in the modeling sector of the paper
 
-# Theory
+-- manager and program information collected is somewhat unstructured and visual inspection of the managed futures website reveals many reporting inconsistencies across managers
+
+-Quick exploratory analysis confirms that data is reported somewhat inconsistently by CTAs
+
+-- In particular, there appears to be very little validation of manager and program information submitted by CTAs
+
+- Result: this part of the collected data set requires a lot of cleaning and standardization before it can be used effectively in our modeling
 
 # Data Preprocessing: Standardizing Returns 
 -- Standardization rescales a variable while preserving its order 
@@ -624,10 +635,6 @@ $$PR = \frac{1}{\sum_{i=1}^{I}\left( \omega_{k,i}\right)^{4}}$$
 -- PRs facilitate identification of statistical facotrs that represent macroeconomic scenarios, namely those with many participants
 
 -- Also help us identify factors that represent microeconomic scenarios, namely factors with few participants
-
-# Application
-
-
 
 # Portfolio Return & Variability
 -- Portfolio compounded return for interval from months 1 to $M$:
@@ -900,7 +907,7 @@ The github repository also includes the .Rmd file used to generate the .pdf work
 
 # Contact Information
 
-Thank you!
+Thank you! Please do not use this Altegris data for commercial applications!
 
 Derek G Nokes
 
