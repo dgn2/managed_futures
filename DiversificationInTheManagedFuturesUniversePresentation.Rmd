@@ -1,0 +1,912 @@
+---
+title: "Diversification In The Managed Futures Universe"
+author: "Derek G Nokes"
+date: "Monday, May 25, 2015"
+output: beamer_presentation
+toc: yes
+fig_width: 7
+fig_height: 4
+---
+
+```{r,echo=FALSE,error=FALSE,warning=FALSE,message=FALSE}
+# get all the data and compute all the numbers for the presentation
+displayRCode=FALSE
+displayRErrors=FALSE
+displayRWarnings=FALSE
+displayRMessages=FALSE
+library('ggplot2')
+library('reshape2')
+library('ggthemes')
+library('RColorBrewer')
+library('RMySQL')
+library('xts')
+library('hash')
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+nParametersInC <- function (I){
+  #
+  nParameters<-(I*(I+1))/2
+  nParameters
+}
+```
+
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# connection parameters
+dbDriver<-dbDriver("MySQL")
+dbHost<-'localhost'
+dbPort<-3306
+dbUser<-'root'
+dbPassword<-'TGDNrx78'
+dbName<-'altegris'
+# connect to the 'altegris' database
+dbHandle<-dbConnect(dbDriver,dbname = dbName,
+  host=dbHost,port=dbPort,user=dbUser, 
+  password=dbPassword)
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# extract the systematic programs
+query<-paste0("SELECT * FROM altegris.cta_program_info ",
+  "WHERE column_type = 'investmentMethodology' AND ",
+  "column_name = 'Systematic' ",
+  "ORDER BY cta_name,program_name,column_type;")
+# fetch the systematic programs
+ctaSystematic<-dbGetQuery(dbHandle,query)
+# assume that 'No' indicates no systematic element
+ctaSystematic[ctaSystematic[,3]=='No',3]<-0
+# assume that 'Yes' indicates 100% systematic element
+ctaSystematic[ctaSystematic[,3]=='Yes',3]<-100
+# create a histogram
+percentSystematic<-as.numeric(ctaSystematic[,3])
+# define x
+x<-seq(from=1,to=100,by=1)
+# count the number of programs with x% systematic
+systematicFrequency<-tabulate(percentSystematic)
+# set a threshold under which a program is not considered to be systematic
+systematicThreshold<-90
+# find the programs with a systematic component above the threshold
+systematicIndex<-percentSystematic>=systematicThreshold
+# find the frequency %
+systematicFrequencyPercent<-round((systematicFrequency/length(systematicIndex))*100,1)
+# extract the programs above the threshold
+programId<-ctaSystematic[systematicIndex,6]
+# create the table data frame
+distributionAboveThreshold<-data.frame(x,
+  systematicFrequencyPercent,
+  cumsum(systematicFrequencyPercent))
+systematicDf<-data.frame(percentSystematic)
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# extract the margin to equity data
+query<-paste0("SELECT * FROM altegris.cta_program_info ",
+  "WHERE column_type = 'investmentTermsAndInfo' AND ",
+  "column_name='Margin  Equity Ratio' ",
+  "ORDER BY cta_name,program_name,column_type;")
+# fetch the margin to equity
+ctaMarginToEquity<-dbGetQuery(dbHandle,query)
+# convert the margin-to-equity to numeric
+marginToEquity<-as.numeric(ctaMarginToEquity[,3])/100
+# convert the 'margin-to-equity' to leverage
+leverage<-round(1/(marginToEquity),1)
+# find the mean leverage
+meanLeverage<-mean(leverage,na.rm=TRUE)
+# find the mean margin-to-equity
+meanMarginToEquity<-mean(marginToEquity,na.rm=TRUE)
+# find the min leverage
+minLeverage<-min(leverage,na.rm=TRUE)
+# find the max leverage
+maxLeverage<-max(leverage,na.rm=TRUE)
+# create x
+xLeverage<-seq(from=1,to=maxLeverage,by=1)
+# find the frequency of different leverages
+leverageFrequency<-tabulate(round(leverage,0))
+# create the leverage table
+leverageTable<-data.frame(xLeverage,leverageFrequency,
+  round(leverageFrequency/sum(leverageFrequency)*100,1))
+# name the columns
+rownames(leverageTable)<-xLeverage
+# find the 30th, 50th, and 70th percentiles
+leveragePercentiles<-quantile(round(leverage,0),c(0.3,0.5,0.7),na.rm=TRUE)
+# creat the graph
+leverageDf<-data.frame(leverage)
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+fetchMonthlyReturnsForCtaByProgramId <- function (dbHandle,programId){
+  query<-paste0("SELECT eom_date,monthly_return FROM cta_monthly_returns ",
+    "WHERE program_id=",programId)
+  ctaReturns<-dbGetQuery(dbHandle,query)
+  eomDate<-as.POSIXct(ctaReturns[,1])
+  monthlyReturn<-ctaReturns[,2]/100
+  ctaReturn<-data.frame(eomDate,monthlyReturn,stringsAsFactors=FALSE)
+  ctaReturn
+  }
+```
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+minDate<-"2005-01-01"
+query<-paste0("SELECT DISTINCT cta_name,program_name,program_id,MIN(eom_date) AS minDate ",
+  "FROM altegris.cta_monthly_returns WHERE eom_date<'",
+  minDate,"' GROUP BY program_id ORDER BY cta_name;")
+ctaList<-dbGetQuery(dbHandle,query)
+programIds<-ctaList['program_id']
+ctaNames<-ctaList['cta_name']
+ctaPrograms<-ctaList['program_name']
+# remove some of the detail from the program name to make names shorter
+ctaPrograms[,1]<-gsub('*QEP*','',ctaPrograms[,1])
+ctaPrograms[,1]<-gsub('*FRN*','',ctaPrograms[,1])
+ctaPrograms[,1]<-gsub('\\**','',ctaPrograms[,1])
+ctaPrograms[,1]<-gsub('*PROP*','',ctaPrograms[,1])
+ctaPrograms[,1]<-gsub('*Program*','',ctaPrograms[,1])
+```
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create the xts object to hold the group data
+groupData <- xts()
+
+for (programIndex in 1:dim(programIds)[1]){
+  # get the program ID
+  programId<-programIds[programIndex,1]
+  # get the CTA name
+  ctaName<-ctaList[programIndex,2]
+  # fetch the program returns
+  ctaReturn<-fetchMonthlyReturnsForCtaByProgramId(dbHandle,programId)
+  dataObject<-xts(ctaReturn[,2],order.by=as.POSIXct(ctaReturn[,1],
+    format='%Y-%m-%d'))
+  recentData<-last(dataObject,'10 year')
+  df<-data.frame(date=index(recentData),coredata(recentData))
+  # create the individual graph
+  p1 <- ggplot(ctaReturn, aes(x=eomDate, y=cumprod(1+monthlyReturn))) + 
+    geom_line() + ggtitle(ctaName)+xlab('Time')+
+    ylab('Terminal Wealth Relative (TWR)')+theme_economist()+
+    scale_colour_economist()
+  # label the return data with the program ID
+  colnames(recentData)<-programId
+  # add the individual progrma data to the group
+  groupData <- merge(groupData, recentData)
+}
+groupDataDimension<-dim(groupData)
+```
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create the query
+query<-paste0("SELECT DISTINCT column_value,COUNT(column_value) ",
+  "FROM altegris.cta_program_info WHERE column_type = 'address' ",
+  "AND column_name='Country' GROUP BY column_value  ORDER BY ",
+"column_value;")
+# extract the data
+ctaCountry<-dbGetQuery(dbHandle,query)
+# create the table
+colnames(ctaCountry)<-c('Country','# of Programs')
+# replace empty with Unreported
+ctaCountry[ctaCountry[,1]=='',1]<-'Unreported'
+# reclassify US Virgin Islands as United States
+ctaCountry[,1]<-gsub('St. Croix USVI','United States',ctaCountry[,1])
+# we clean up the US entries
+ctaCountry[,1]<-gsub('USA','United States',ctaCountry[,1])
+ctaCountry[,1]<-gsub('US','United States',ctaCountry[,1])
+# we clean up the UK entries
+ctaCountry[,1]<-gsub('UK','United Kingdom',ctaCountry[,1])
+ctaCountry[,1]<-gsub('United Kingdon','United Kingdom',ctaCountry[,1])
+# create the country factor
+countryFactor <- factor(ctaCountry[,1])
+# redo the counts by country
+cleanTable<-aggregate(x=ctaCountry[,2],by=list(countryFactor),FUN="sum")
+# compute the percent by region
+countryPercent<-round(cleanTable[,2]/sum(cleanTable[,2]),4)
+# add row names
+rownames(cleanTable)<-cleanTable[,1]
+# create the table
+cleanTable<-cbind(cleanTable,countryPercent*100)
+# remove country column
+
+# label the columns
+colnames(cleanTable)<-c('Country','# of Programs','% of Programs')
+# create the sort index
+sortIndex<-sort.int(cleanTable[,2],index.return=TRUE,decreasing=TRUE)
+# write the clean table
+#knitr::kable(cleanTable[sortIndex$ix,2:3],caption='Programs By Country - Cleaned')
+```
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+oldCtaIndex<-sort.int(ctaList[,4],index.return=TRUE)
+ctaListingTable<-ctaList[oldCtaIndex$ix,c(1,2,4)]
+# knitr::kable(head(ctaListingTable,10),
+#   caption=paste0('Sample of 10 of the ',
+#   groupDataDimension[2],' Programs'))
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# disconnect from the 'altegris' database
+dbDisconnect(dbHandle)
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# standardize returns
+standardize<-function(x) (x - mean(x,na.rm=TRUE)) / sd(x,na.rm=TRUE)
+# unstandardize returns
+unstandardize<-function(scaledX,meanX,sdX) ((scaledX * as.vector(sdX)) + as.vector(meanX))
+#
+unstandardizePaths <- function (scaledX,meanX,sdX){
+  # get column labels
+  columnNames<-colnames(scaledX)
+  # get row labels
+  rowNames<-rownames(scaledX)
+  # find the rows and columns of the input matrix  
+  dimension<-dim(scaledX)
+  # create matrix to store unstandardized
+  unstandardizedReturns<-matrix(0,dimension[1],dimension[2])
+  for (pathIndex in 1:dimension[2]){
+    # reverse standardization
+    unstandardizedReturns[,pathIndex]<-unstandardize(scaledX[,pathIndex],
+      meanX[pathIndex],sdX[pathIndex])
+  }
+  # add column labels
+  colnames(unstandardizedReturns)<-columnNames
+  # add row labels
+  rownames(unstandardizedReturns)<-rowNames
+  # return standardized paths
+  unstandardizedReturns
+}
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+perturbCorrelation<-function (shockFactor,factorIndex,eigenvalues,eigenvectors){
+  # create the hash to store the results
+  scenario<-hash()
+  scenarioEigenvalues <- eigenvalues
+  scenarioEigenvalues[factorIndex] <- eigenvalues[factorIndex] * shockFactor
+  C1 <- eigenvectors %*% diag(scenarioEigenvalues) %*% t(eigenvectors)
+  # extract the variance
+  V <- diag(1/sqrt(C1))
+  # normalize the correlation matrix
+  C2 <- diag(V) %*% C1 %*% diag(V)
+  # eigen decomposition
+  scenarioDecomposition=eigen(C2)
+  # extract the stressed eigenvalues
+  eigenvaluesF=scenarioDecomposition$values
+  # extract the stressed eigenvector
+  eigenvectorF=scenarioDecomposition$vectors
+  # number of factors
+  numberOfFactors<-sum(eigenvaluesF)
+  # compute the proportion of variance
+  scenarioProportionOfVariance<-eigenvaluesF/numberOfFactors
+  # store the correlation matrix
+  scenario['correlation']<-C2
+  # store the proportion of variance
+  scenario['proportionOfVariance']<-scenarioProportionOfVariance
+  # return the scenario
+  scenario
+}
+```
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+perturbFactorCorrelation <- function (factorIndex,eigenvalues,eigenvectors){
+  # create the hash
+  scenarios<-hash()
+  # create shock scenarios
+  shockFactors<-seq(from=0.2,to=5,by=0.2)
+
+  # iterate over shock factors
+  for (shockIndex in seq_along(shockFactors)){
+    # extract the shock
+    shockFactor<-shockFactors[shockIndex]
+    # increase the importance of the factorIndex factor
+    scenario<-perturbCorrelation(shockFactor,factorIndex,eigenvalues,eigenvectors)
+    # store the correlation
+    scenarios[paste0('scenario_',shockIndex)]<-scenario
+  }
+  # return scenarios
+  scenarios
+}
+```
+
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+factorBasedCorrelationSensitivity<-function (numberOfFactors,C){
+  # find the number of rows and columns
+  dimension<-dim(C)
+  # create the storage matrix
+  sensitivity<-matrix(0,numberOfFactors,dimension[2])
+  # compute the eigendecomposition
+  decomposition=eigen(C)
+  # extract eigenvalues
+  eigenvalues=decomposition$values
+  # extract eigenvectors
+  eigenvectors=decomposition$vectors
+  # find the proportion of variance
+  proportionOfVariance=eigenvalues/length(eigenvalues)
+  # find the explained variance
+  explainedVariance=cumsum(proportionOfVariance)
+  # create hash
+  scenariosByFactor<-hash()
+  
+  # iterate over each factor
+  for (factorIndex in 1:numberOfFactors){
+    # perturb the factor
+    scenarios<-perturbFactorCorrelation(factorIndex,eigenvalues,eigenvectors)
+    scenariosByFactor[paste0('factor_',factorIndex)]<-scenarios
+    #
+    scenarioIndices<-sort(as.numeric(gsub('scenario_','',
+      names(scenariosByFactor[paste0('factor_',factorIndex)]))))
+    }
+  scenariosByFactor
+}
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# define the inverse participation ratio (IPR)
+inverseParticipationRatio <- function (k,omega){
+  # find the IPR
+  IPR<-sum(omega[,k]^4)
+  # return the IPR
+  IPR
+}
+# define the participation ratio (PR)
+PR<- function (k,omega){
+  # find the IPR
+  IPR<-inverseParticipationRatio(k,omega)
+  # take the inverse of the IPR
+  PR<-1/IPR
+  # return the PR
+  PR
+}
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# find the mean return
+componentReturn<-apply(groupData,2, na.rm = TRUE,mean)
+# find the variance
+componentVariance<-apply(groupData,2, na.rm = TRUE,var)
+# find the standard deviation
+componentVolatility<-apply(groupData,2, na.rm = TRUE,sd)
+# standardize the returns
+standardizedReturns<-apply(groupData,2,standardize)
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# compute the correlation
+C <- cor(standardizedReturns,use="na.or.complete")
+program_ids1<-colnames(C)
+program_ids2<-rownames(C)
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# compute the eigendecomposition
+decomposition=eigen(C)
+eigenvalues=decomposition$values
+eigenvectors=decomposition$vectors
+
+proportionOfVariance=eigenvalues/length(eigenvalues)
+explainedVariance=cumsum(proportionOfVariance)
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+makeFactorName<-function (x){ paste0('Factor ',x)}
+x<-1:groupDataDimension[2]
+factorNames<-makeFactorName(x)
+proportionOfVarianceTable<-cbind(data.frame(factorNames),proportionOfVariance*100,
+  explainedVariance*100)
+columnNames<-c('Factors','Proportion of Variance','Cumulative Proportion of Variance')
+colnames(proportionOfVarianceTable)<-columnNames
+#knitr::kable(head(proportionOfVarianceTable,10),digits=1,caption='Top 5 Factors')
+```
+
+
+
+# Introduction & Motivation
+
+# Objective 
+
+Maximize investors' future wealth by determining how to allocate capital among a set of available managed futures investments in such a way as to maximize *compound* growth subject to a set of constraints
+
+- Reducing variability of returns has as much impact on total return as increasing magnitude of returns
+
+- Portfolio return variability is a function of the co-variability of investment component returns
+
+- Select sets of investments with *future* positive average returns and low co-variability
+
+# Problem: Too Many Moving Parts to Understand Intuitively!
+
+As size of a portfolio increases, number of inter-relationships between components explodes
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages,fig.height=2.5,fig.width=6}
+# create a graph to illustrate number of model parameters by number of instruments
+nParametersInCDf<-data.frame(x=1:100,y=nParametersInC(1:100))
+# create a plot of the required gain to recover from DD
+ggplot(nParametersInCDf, aes(x=x, y=y)) + geom_line() + 
+  ggtitle('# of Model Parameters By # of Investments')+
+  theme_economist()+scale_colour_economist()+
+  xlab('# of Investments (I)')+
+  ylab('# of Model Parameters (P)')
+# add LaTEX formula
+
+```
+
+-- Becomes increasingly difficult to understand drivers of portfolio return as number of components rises
+
+-- Too many moving parts (particularly during a crisis)
+
+# Solution 
+
+-- Group investments that tend to move together 
+
+-- Focus on trying to find groups that are independent 
+
+- One common way to reduce dimension of portfolio allocation problem
+
+-- Can be accomplished through use of statistical *factor models*
+
+# Data
+Extract data for all managed futures programs from the website Altergis ()
+
+# Raw Data Extraction, Transformation, and Loading (ETL)
+
+For each managed futures program we extract:
+
+**[1] Manager Info**
+
+- CTA Name / Address
+
+**[2] Program Info**
+
+- Program Name
+
+- Investment Methodology
+
+- Instruments/Sectors/Geographical Focus
+
+- Holding Periods (Short/Medium/Long)
+
+- Investment Terms and Info
+
+**[3] Performance Track Record**
+
+- Monthly Returns
+
+# Data Exploration
+
+**Systematic**
+-- `r distributionAboveThreshold[100,2]`% of the programs are 100% systematic, while `r sum(distributionAboveThreshold[systematicThreshold:100,2])`% claim that the proportion of their operation that is systematic is `r systematicThreshold`% or above
+
+**Region of Operations**
+-- Vast majority of programs are operated out of either the US or UK (`r cleanTable[cleanTable[,1]=='United States',3]+cleanTable[cleanTable[,1]=='United Kingdom',3]`%)
+
+- `r cleanTable[cleanTable[,1]=='United States',3]`% US-Based
+
+- `r cleanTable[cleanTable[,1]=='United Kingdom',3]`% UK-Based
+
+- `r cleanTable[cleanTable[,1]=='Unreported',3]`% do not provide information about geographical location
+
+**Margin-to-Equity & Leverage**
+-- Typical program employes about `r leveragePercentiles[2]`x leverage (i.e., margin-to-equity of `r round(1/leveragePercentiles[2]*100,2)`%)
+
+- Varies a lot across programs (`r minLeverage`x to `r maxLeverage`x)
+
+- Concentrated around `r leveragePercentiles[1]`x and `r leveragePercentiles[3]`x
+
+# Systematic
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+qplot(percentSystematic, data=systematicDf, geom="histogram")+ coord_flip()+
+  ggtitle('CTA Response for Percent Systematic')+xlab('% Systematic')+
+  ylab('# of CTAs')+theme_economist()+
+  scale_colour_economist()
+```
+
+# Leverage
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+qplot(leverage, data=leverageDf, geom="histogram") + coord_flip()+
+  ggtitle('CTA Program Leverage Distribution')+xlab('Leverage')+
+  ylab('# of CTAs')+theme_economist()+
+  scale_colour_economist()
+```
+
+# Monthly Returns
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create title label for graph
+reportGroup<-'TWR - Selected Managed Futures Programs'
+# create the terminal wealth relative (TWR) data frame
+df<-data.frame(date=index(groupData),apply(1+coredata(groupData),2,cumprod))
+# convert the 'wide' form data to 'long' form 
+longDf<-melt(df,id="date")
+pg<-ggplot(data=longDf,aes(x=date,y=value,colour=variable))+geom_line()+ggtitle(reportGroup)+theme_economist()+theme(legend.position="none")+xlab('time')+ylab('Terminal Wealth Relative (TWR)')
+print(pg)
+```
+
+# Data Cleaning
+
+
+# Modeling
+
+# Theory
+
+# Data Preprocessing: Standardizing Returns 
+-- Standardization rescales a variable while preserving its order 
+
+-- Denote monthly return of $i^{th}$ investment for $m^{th}$ month as $r_{i,m}$ and define standardized return as:
+
+$$\hat{r}_{i,m}=\frac{\left( r_{i,m}-\bar{r}_{i,M}\right)}{\sigma(r_{i,M})}$$
+
+- $\hat{r}_{i,m}$ = standardized return of $i^{th}$ investment for $m^{th}$ month using data over time interval 1 to $M$
+
+- $r_{i,m}$ = observed return of $i^{th}$ investment for $m^{th}$ month
+
+- $\bar{r}_{i,M}=\frac{1}{M}\sum_{m=1}^{M}\left(\hat{r}_{m}\right)$ = mean of return stream of $i^{th}$ investment over time interval 1 to $M$
+
+- $\sigma(r_{i,M})$ = standard deviation of returns for $i^{th}$ investment over time interval 1 to $M$
+
+# Correlations
+Represent standardized returns as an $I$ x $M$ matrix $\hat{R}$ with an empirical correlation matrix $C$ defined as:
+
+$$C = \frac{1}{M}\hat{R}\hat{R}^{T}$$
+
+- $T$ denotes the matrix transform
+
+-- Correlation matrix ($C$) of returns ($\hat{R}$) and covariance matrix ($\Sigma_{\hat{R}}$) of standardized returns ($\hat{R}$) are *identical*
+
+# Principal Component Analysis (PCA)
+**Objective**: Find linear transformation $\Omega$ that maps a set of observed variables $\hat{R}$ into a set of uncorrelated variables $F$. Define $I$ x $M$ statistical factor matrix as:
+
+$$F = \Omega\hat{R}$$
+
+-- Each row $f_{k}$ ($k = 1, \dots ,N$) corresponds to a factor $F$ of $\hat{R}$ 
+
+-- Transformation matrix $\Omega$ has elements $\omega_{k,i}$. 
+
+-- First row of $\omega_{1}$ (which contains first set of factor coefficients or 'loadings') chosen such that first factor ($f_{1}$) is aligned with direction of maximal variance in $I$-dimensional space defined by $\hat{R}$. 
+
+-- Each subsequent factor ($f_{k}$) accounts for as much of remaining variance of $\hat{R}$ as possible (subject to constraint that $\omega_{k}$ are mutually orthogonal)
+
+-- $\omega_{k}$ constrained by requiring that $\omega_{k}\omega_{k}^{T}=1$ for all $k$.
+
+# Principal Component Analysis (PCA) - Continued
+
+Correlation matrix $C$ is an $I$ x $I$ diagonalizable symmetric matrix that can be written in the form:
+
+$$C = \frac{1}{M}EDE^{T}$$
+ 
+- $D$ = diagonal matrix of eigenvalues $d$ 
+
+- $E$ = orthogonal matrix of corresponding eigenvectors
+
+-- Eigenvectors of correlation matrix $C$ correspond to directions of maximal variance such that $\Omega=E^{T}$ 
+
+-- Statistical factors / principal components $F$ are found using the diagonalization above
+
+# Proportion of Variance
+
+Covariance matrix $\Sigma_{F}$ for statistical factor matrix $F$ written as:
+
+$$\Sigma_{F}=\frac{1}{M}FF^{T}=\frac{1}{M}\Omega\hat{R}\hat{R}^{T} \Omega^{T} = D$$
+
+Total variance of standardized returns $\hat{R}$ for $I$ investments is:
+
+$$\sum_{i=1}^{I}\sigma^{2}(\hat{r}_{i})=tr(\Sigma_{\hat{R}})=\sum_{i=1}^{I}d_{i}=\sum_{i=1}^{N}\sigma^{2}(f_{i})=tr(D)=I$$
+
+- $\Sigma_{\hat{R}}$ = covariance matrix for $\hat{R}$ 
+
+- $\sigma^{2}(\hat{r_{i}})=1$ = variance of vector $\hat{r_{i}}$ of standardized returns for investment $i$
+
+Proportion of total variance in $\hat{R}$ explained by $k^{th}$ factor is:
+
+$$\frac{\sigma^{2}(f_{k})}{\Sigma_{i=1}^{I}\sigma^{2}(\hat{r_{i}})}=\frac{d_{k}}{\Sigma_{i=1}^{I}d_{k}}=\frac{d_{k}}{I}$$
+
+# Inverse Participation Ratio (IPR)
+$IPR_{k}$ of $k^{th}$ factor $\omega_{k}$ is defined as:
+
+$$IPR_{k}=\sum_{i=1}^{I}\left( \omega_{k,i}\right)^{4}$$
+
+-- IPR quantifies reciprocal of the number of elements that make a significant contribution to each eigenvector
+
+-- IPR is bounded by two cases:
+
+(1) An eigenvector with identical contributions $\omega_{k,i}=\frac{1}{\sqrt{I}}$ from all $I$ investments has $IPR_{k}=\frac{1}{I}$
+
+(2) An eigenvector with a single factor $\omega_{k,i}=1$ and remaining factors equal to zero has $IPR=1$
+
+# Participation Ratio (PR)
+-- Inverse of IPR provides more intuitive measure of significance of a given factor 
+
+$$PR = \frac{1}{\sum_{i=1}^{I}\left( \omega_{k,i}\right)^{4}}$$
+
+-- Large $PR$ indicates that many investments contribute to the factor; small $PR$ indicates that few investments contribute to the factor
+
+-- PRs facilitate identification of statistical facotrs that represent macroeconomic scenarios, namely those with many participants
+
+-- Also help us identify factors that represent microeconomic scenarios, namely factors with few participants
+
+# Application
+
+
+
+# Portfolio Return & Variability
+-- Portfolio compounded return for interval from months 1 to $M$:
+
+$$r_{P,M}=\left(\prod_{1=m}^{M}\left(1+\left(\sum_{i=1}^{I}\left(r_{i,m}w_{i,m}\right)\right)\right)\right)-1=\left(\prod_{1=m}^{M}\left(1+r_{P,m}\right)\right)-1$$
+
+-- Assume: 
+
+- Component returns are normally distributed
+
+- Portfolio returns are multivariate normally distributed
+
+-- Standard deviation of portfolio returns (using matrix notation as_:
+
+$$\sigma_{P,M}=\sqrt{Var\left( {W_{m}}^{T} R_{m} \right)}=\sqrt{{W_{m}}^T\Sigma W_{m}}$$
+
+- $W_{m}$ = vector of portfolio component weights for month $m$, $T$ denotes transpose operator, $R_{m}$ = vector of month $m$ component returns, and $\Sigma$ = return covariance matrix
+
+# Correlation Matrix
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# melt the correlation matrix for plotting with ggplot2
+weeklyCorrelationLong<-melt(C)
+# create the blue to purple color function
+jBuPuFun <- colorRampPalette(brewer.pal(n = 9, "BuPu"))
+# use 256 shades
+paletteSize <- 256
+# create the color palette
+jBuPuPalette <- jBuPuFun(paletteSize)
+# create the heat map
+zp2<-ggplot(weeklyCorrelationLong,aes(x=Var2,y=Var1,fill=value))
+# rotate the x-axis
+zp2 <- zp2+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5,size=4),axis.text.y = element_text(size=4))
+zp2<-zp2 + geom_tile()+xlab('Program Id')+ylab('Program Id')
+# use the color palette
+zp2 <- zp2 + scale_fill_gradient2(low=jBuPuPalette[1],mid=jBuPuPalette[paletteSize/2],
+  high=jBuPuPalette[paletteSize],midpoint = 0,name = "Correlation")
+# create the graph
+print(zp2)
+```
+
+# Top 10 Factors
+-First 10 factors explain a very significant proportion of total variance
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+makeFactorName<-function (x){ paste0('Factor ',x)}
+x<-1:groupDataDimension[2]
+factorNames<-makeFactorName(x)
+proportionOfVarianceTable<-cbind(data.frame(factorNames),proportionOfVariance*100,
+  explainedVariance*100)
+columnNames<-c('Factors','% of Variance','Cumulative % of Variance')
+colnames(proportionOfVarianceTable)<-columnNames
+knitr::kable(head(proportionOfVarianceTable,10),digits=1,caption='Top 5 Factors')
+```
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# bind the CTA names, program names, and eigenvectors (factor loadings)
+factorTable<-cbind(ctaNames,ctaPrograms,eigenvectors)
+colnames(factorTable)<-c('Manager Name','Program Name',factorNames)
+# create the sort index for factor 1
+factor_1_Index<-sort.int(factorTable[,3],index.return=TRUE)
+```
+
+# $1^{st}$ Factor
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create the participation ratio for all statistical factors
+participationRatio<-NULL
+for (k in 1:groupDataDimension[2]){ 
+  participationRatio[k]<-PR(k,eigenvectors) 
+  }
+participationRatioRange<-round(range(participationRatio[2:groupDataDimension[2]]))
+
+participationRatioDf<-data.frame(k=1:k,y=participationRatio)
+```
+
+--Sort factor loadings and look at top and bottom
+
+- Long- and medium- term trend-following programs make strongest positive contributions 
+
+- Volatility selling, short-term and relative value programs having small or negative loadings
+
+-- Participation ratio indicates that `r round(participationRatio[1])` components make significant contributions to first factor
+
+-- In strong contrast to other factors where number of components making significant contributions is between `r participationRatioRange[1]` and `r participationRatioRange[2]` 
+
+# 10 Largest Factor Loadings for Factor 1
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create the table to show the ten largest factor loadings
+knitr::kable(tail(factorTable[factor_1_Index$ix,c(2,3)],10),digits=4,
+  caption='Largest Factor 1 Loadings')
+```
+
+# 10 Smallest Factor Loadings for Factor 1
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+# create the table to show the ten smallest factor loadings
+knitr::kable(head(factorTable[factor_1_Index$ix,c(2,3)],10),digits=4,
+  caption='Smallest Factor 1 Loadings')
+```
+
+# Participation Ratio (PR)
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+ggplot(participationRatioDf, aes(x = k, y = participationRatio)) + 
+  geom_bar(stat = "identity")+ggtitle('Participation Ratio')+
+  xlab('k')+ylab('Participation Ratio (PR)')+theme_economist()+
+  scale_colour_economist() + coord_flip()
+```
+
+# Determining Impact of Factors on Portfolio Variability
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+numberOfFactors<-1
+numberOfScenarios<-25
+# run the scenarios
+scenarioByFactor<-factorBasedCorrelationSensitivity(numberOfFactors,C)
+dimension<-dim(C)
+I<-dimension[1]
+W<-rep(1,I)/I
+
+# extract the information required to create sensitivities
+varianceScenarios<-matrix(0,numberOfScenarios,dimension)
+portfolioV<-matrix(0,numberOfScenarios,numberOfFactors)
+for (factorIndex in 1:numberOfFactors){
+  for (scenarioIndex in 1:numberOfScenarios){
+    #
+    v<-eval(parse(text=(as.symbol(paste0('scenarioByFactor$factor_',factorIndex,
+      '$scenario_',scenarioIndex,'$proportionOfVariance')))))
+    varianceScenarios[scenarioIndex,]<-v
+    C<-eval(parse(text=(as.symbol(paste0('scenarioByFactor$factor_',factorIndex,
+      '$scenario_',scenarioIndex,'$correlation')))))
+    # 
+    portfolioV[scenarioIndex,factorIndex]<-portfolioVolatility(W,C)
+  }
+}
+```
+
+-- Perturb 'importance of first factor' up and down 
+
+-- Use equation for portfolio standard deviation to determine impact on portfolio
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages,fig.height=2.5,fig.width=6}
+# create a plot of the sensitivities
+sensitivityDf<-data.frame(x=varianceScenarios[,1]*100,y=portfolioV[,1]*100)
+ggplot(sensitivityDf, aes(x=x, y=y)) + geom_line() + 
+  ggtitle('Factor Sensitivity')+
+  theme_economist()+scale_colour_economist()+
+  xlab('Proportion of Total Variance - 1st Factor (%)')+
+  ylab('Portfolio Standard Deviation (%)')
+```
+
+# Scenario 1: Importance of First Factor Falls Hard - Way More Diversification
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+C_F1<-perturbCorrelation(0.2,1,eigenvalues,eigenvectors)
+CF1<-C_F1$correlation
+colnames(CF1)<-program_ids1
+rownames(CF1)<-program_ids2
+# melt the correlation matrix for plotting with ggplot2
+weeklyCorrelationLong_F1<-melt(CF1)
+colnames(C_F1$correlation)<-colnames(C)
+rownames(C_F1$correlation)<-rownames(C)
+# create the blue to purple color function
+jBuPuFun <- colorRampPalette(brewer.pal(n = 9, "BuPu"))
+# use 256 shades
+paletteSize <- 256
+# create the color palette
+jBuPuPalette <- jBuPuFun(paletteSize)
+# create the heat map
+zp2<-ggplot(weeklyCorrelationLong_F1,aes(x=Var2,y=Var1,fill=value))
+# rotate the x-axis
+zp2 <- zp2+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5,size=4),axis.text.y = element_text(size=4))
+zp2<-zp2 + geom_tile()+xlab('Program Id')+ylab('Program Id')
+# use the color palette
+zp2 <- zp2 + scale_fill_gradient2(low=jBuPuPalette[1],mid=jBuPuPalette[paletteSize/2],
+  high=jBuPuPalette[paletteSize],midpoint = 0,name = "Correlation")
+# create the graph
+print(zp2)
+```
+
+# Scenario 1: Importance of First Factor Rises Hard - Way Less Diversification
+
+```{r,echo=displayRCode,error=displayRErrors,warning=displayRWarnings,message=displayRMessages}
+C_F1<-perturbCorrelation(5,1,eigenvalues,eigenvectors)
+CF1<-C_F1$correlation
+colnames(CF1)<-program_ids1
+rownames(CF1)<-program_ids2
+# melt the correlation matrix for plotting with ggplot2
+weeklyCorrelationLong_F1<-melt(CF1)
+# create the blue to purple color function
+jBuPuFun <- colorRampPalette(brewer.pal(n = 9, "BuPu"))
+# use 256 shades
+paletteSize <- 256
+# create the color palette
+jBuPuPalette <- jBuPuFun(paletteSize)
+# create the heat map
+zp2<-ggplot(weeklyCorrelationLong_F1,aes(x=Var2,y=Var1,fill=value))
+# rotate the x-axis
+zp2 <- zp2+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5,size=4),axis.text.y = element_text(size=4))
+zp2<-zp2 + geom_tile()+xlab('Program Id')+ylab('Program Id')
+# use the color palette
+zp2 <- zp2 + scale_fill_gradient2(low=jBuPuPalette[1],mid=jBuPuPalette[paletteSize/2],
+  high=jBuPuPalette[paletteSize],midpoint = 0,name = "Correlation")
+# create the graph
+print(zp2)
+```
+
+# Conclusions
+
+-- Factor analysis revealed a very significant proportion of the total variance of modeled managed futures universe can be captured by a single statistical factor
+
+-- First factor corresponds to a very intuitive scenario. 
+
+-- Sensitivity analysis developed - given the intuitive interpretation of first factor - can be used to better understand variation in managed futures universe 
+
+-- Can be used to identify programs that provide better diversification in different market regimes
+
+-- Will use my sophisticated versions of this to help my employer understand risk and return drivers of our $3.5 billion fund
+
+# References
+
+(@) C. Bacon [2008], Practical Portfolio Performance Measurement and Attribution, $2^{nd}$ Ed, John Wiley & Sons, Inc.
+
+(@) D. J. Fenn, N. F. Johnson, N. S. Jones, M. McDonald, M. A. Porter, S. Williams [2011], Temporal evolution of financial-market correlations, Physical Review E 84, 026109
+
+(@) F. J. Fabozzi, S. M. Focardi, P. N. Kolm [2010], Quantitative Equity Investing: Techniques and Strategies (Frank J. Fabozzi Series), John Wiley & Sons, Inc.
+
+(@) N. Fenton, M. Neil [2013], Risk Assessment and Decision Analysis With Bayesian Networks, CRC Press
+
+(@) D. Koller, N. Friedman [2009], Probabilistic graphical models: principles and techniques, MIT press.
+
+(@) A. Golub and Z. Guo [2012], Correlation Stress Tests Under the Random Matrix Theory: An Empirical Implementation to the Chinese Market
+
+(@) A Meucci [2009], Risk and Asset Allocation, $1^{st}$ Ed, Springer Berlin Heidelberg
+
+# References - Continued
+
+(@) R. Rebonato [2010], Plight of the Fortune Tellers: Why We Need to Manage Financial Risk Differently, Princeton University Press
+
+(@) R. Rebonato [2010], Coherent Stress Testing: A Bayesian Approach to the Analysis of Financial Stress , John Wiley & Sons, Inc.
+
+(@) R. Rebonato and A. Denev [2014], Portfolio Management Under Stress: A Bayesian-net Approach to Coherent Asset Allocation, Cambridge University Press
+
+(@) D. Skillicorn [2007], Understanding Complex Datasets: Data Mining with Matrix Decompositions, Chapman and Hall/CRC
+
+(@) R. Vince [2007], The Handbook of Portfolio Mathematics: Formulas for Optimal Allocation and Leverage, John Wiley & Sons, Inc.
+
+# Appendix A: GitHub Repository
+
+All of the R code used to produce this paper can be found in the following github repository:
+
+<https://github.com/dgn2/managed_futures>
+
+The github repository also includes the .Rmd file used to generate the .pdf working paper file and includes code to:
+
+* extract CTA manager, program, and monthly return data from the Altegris managed futures website
+
+* create a MySQL database with tables to store extracted CTA manager, program, and monthly return data
+
+* load CTA manager, program, and monthly return data to the MySQL database
+
+* conduct limited exploratory analysis of the data
+
+* conduct limited cleaning of the data used in subsequent statistical modeling 
+
+* estimate statistical factors based on the monthly returns of a select set of CTA programs
+
+* compute sensitivities
+
+# Contact Information
+
+Thank you!
+
+Derek G Nokes
+
+<dgnokes@gmail.com>
+
+<https://github.com/dgn2/managed_futures>
+
+
+
