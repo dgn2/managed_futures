@@ -851,7 +851,7 @@ print(zp2)
 
 -- Can be used to identify programs that provide better diversification in different market regimes
 
--- Will use my sophisticated versions of this to help my employer understand risk and return drivers of our $3.5 billion fund
+-- Will potentially use more sophisticated versions of this at work ($3.5 Billion Fund)
 
 # References
 
